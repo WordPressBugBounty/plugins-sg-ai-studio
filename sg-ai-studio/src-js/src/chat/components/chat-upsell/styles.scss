@@ -1,0 +1,12 @@
+.chat-input__upsell-prompt {
+  position: relative;
+  bottom: -22px;
+  min-height: 71px;
+  padding: calc(var(--space-x-small) + var(--space-3x-small)) var(--space-medium);
+  background-color: var(--color-primary-low);
+  border-radius: var(--radius-x-large);
+
+  &__wrapper {
+    padding-top: calc(var(--space-x-small) - var(--space-3x-small));
+  }
+}

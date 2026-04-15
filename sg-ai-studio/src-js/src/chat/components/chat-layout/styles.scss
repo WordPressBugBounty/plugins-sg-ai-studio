@@ -1,0 +1,338 @@
+@use "@siteground/styleguide/lib/styles/base/styleguide" as *;
+
+$chat-z-index: 100000;
+
+.wp-ai-studio-chat {
+  position: fixed;
+  z-index: $chat-z-index;
+  right: 30px;
+  bottom: 30px;
+
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+
+  border-radius: var(--radius-large);
+  box-shadow: var(--third-level-box-shadow);
+
+  transition: all 0.2s ease;
+
+  //NOTE: Disable transitions during dragging to prevent lag
+  &--dragging {
+    transition: none;
+  }
+
+  &__opened {
+    width: 540px;
+    height: 640px;
+    max-height: 90vh;
+    border: 1px solid var(--color-border-action-enabled);
+  }
+
+  &__minimized {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary-main);
+  }
+
+  &__minimized .sg-icon.sg-with-color {
+    color: var(--color-neutral-white);
+  }
+
+  /************************************************************
+ Header
+ ***********************************************************/
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 11px var(--space-medium);
+    background-color: var(--color-background-secondary);
+    border: 1px solid var(--color-border-main);
+    border-top-left-radius: var(--radius-large);
+    border-top-right-radius: var(--radius-large);
+    flex-shrink: 0;
+    cursor: move;
+  }
+
+  /************************************************************
+ Content
+ ***********************************************************/
+
+  &__content {
+    position: relative;
+    display: flex;
+    flex-basis: auto;
+    flex-direction: column;
+    flex-shrink: 1;
+    background-color: var(--background-component-primary);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  &__content:last-child {
+    border-bottom-left-radius: var(--radius-x-large);
+    border-bottom-right-radius: var(--radius-x-large);
+  }
+
+  &__content--expand {
+    flex-grow: 1;
+  }
+
+  /************************************************************
+ Footer
+ ***********************************************************/
+
+  &__footer {
+    position: relative;
+    display: flex;
+    min-height: 70px;
+    flex-shrink: 0;
+    align-items: center;
+    background-color: var(--color-background-tertiary);
+    border-bottom-left-radius: var(--radius-x-large);
+    border-bottom-right-radius: var(--radius-x-large);
+
+    &--expand {
+      flex-grow: 1;
+    }
+  }
+
+  /************************************************************
+ Overlay
+ ***********************************************************/
+
+  &__overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+  }
+
+  /************************************************************
+ Scroll
+ ***********************************************************/
+
+  &::-webkit-scrollbar {
+    width: 14px;
+    background-color: var(--chat-scrollbar-color);
+  }
+
+  &::-webkit-scrollbar-track {
+    border-right: 3px solid var(--chat-scrollbar-track-border-color);
+    border-left: 3px solid var(--chat-scrollbar-track-border-color);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-right: 3px solid var(--chat-scroll-thumb-border-color);
+    border-left: 3px solid var(--chat-scroll-thumb-border-color);
+    background-color: var(--chat-scroll-thumb-color);
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--chat-scroll-thumb-color-hover);
+  }
+
+  &::-webkit-scrollbar-corner {
+    background-color: var(--chat-scrollbar-corner-color);
+  }
+
+  /************************************************************
+ Animations
+ ***********************************************************/
+
+  &--animation-shake {
+    animation: shake 0.82s cubic-bezier(0.35, 0.08, 0.2, 0.98) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  @keyframes shake {
+    10%,
+    90% {
+      transform: translate3d(-2px, 0, 0);
+    }
+
+    20%,
+    80% {
+      transform: translate3d(3px, 0, 0);
+    }
+
+    30%,
+    50%,
+    70% {
+      transform: translate3d(-3px, 0, 0);
+    }
+
+    40%,
+    60% {
+      transform: translate3d(3px, 0, 0);
+    }
+  }
+
+  /************************************************************
+ StyleGuide overwrite
+ ***********************************************************/
+
+  &__resizer--top-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+  }
+
+  &__resizer--top-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+  }
+
+  &__resizer--bottom-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nesw-resize;
+  }
+
+  &__resizer--bottom-right {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: nwse-resize;
+  }
+
+  &__resizer--top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 5px;
+    cursor: ns-resize;
+  }
+
+  &__resizer--left {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    height: 100%;
+    cursor: ew-resize;
+  }
+
+  &__resizer--bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 5px;
+    cursor: ns-resize;
+  }
+
+  &__resizer--right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    cursor: ew-resize;
+  }
+
+  /************************************************************
+ MAC 1280x800 height or smaller
+ ***********************************************************/
+
+  /* Styles for screens below 640 pixels */
+  @media (max-height: 639px) {
+    &__opened {
+      height: 90vh;
+    }
+  }
+
+  /************************************************************
+ Mobile
+ ***********************************************************/
+
+  @media ($media-query-max-phone) {
+    &__opened {
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+    }
+  }
+}
+
+/************************************************************
+ Site overwrite
+ ***********************************************************/
+
+// .chat p {
+//   margin: 0;
+// }
+
+/************************************************************
+Minimized Chat
+ ***********************************************************/
+.chat-close-state {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chat-close-state__unread-messages {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-error-main);
+  border-radius: 50%;
+  text-align: center;
+}
+
+.chat-close-state__unread-messages-text.chat-close-state__unread-messages-text {
+  color: var(--color-typography-contrast);
+}
+
+.sg-theme-hcb .chat-close-state__unread-messages-text.chat-close-state__unread-messages-text,
+.sg-theme-hcl .chat-close-state__unread-messages-text.chat-close-state__unread-messages-text {
+  color: var(--high-contrast-background);
+}
+
+.sg-icon-button:nth-child(n + 2) {
+  margin-left: 0;
+}
+
+.sg-tooltip {
+  z-index: $chat-z-index + 1;
+}

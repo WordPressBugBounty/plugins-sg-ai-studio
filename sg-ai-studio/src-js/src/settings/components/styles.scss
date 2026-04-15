@@ -1,0 +1,17 @@
+@use "@siteground/styleguide/lib/styles/base/styleguide" as *;
+
+//HACK: Override the background color of the wordpress page to match the background of our plugin background
+#wpcontent {
+  background: var(--background-main);
+}
+
+.sg-ai-studio-settings {
+  position: relative;
+  grid-template-columns: 1fr auto;
+}
+
+@media ($media-query-max-phone) {
+  .sg-ai-studio-settings {
+    grid-template-columns: none;
+  }
+}

@@ -1,0 +1,11 @@
+.general-image-preview-container {
+  width: 100%;
+}
+
+.override-icon.sg-chip--disabled .sg-chip_item.sg-chip_item {
+  color: var(--color-typography-tertiary);
+}
+
+.chip__text {
+  padding-right: var(--space-3x-small);
+}

@@ -1,0 +1,50 @@
+.message-box__wrapper {
+  background-color: var(--color-background-secondary);
+  border-bottom-left-radius: var(--radius-x-large);
+  border-bottom-right-radius: var(--radius-x-large);
+}
+
+.message-box {
+  display: flex;
+  max-width: 100%;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: flex-start;
+}
+
+.message-box__textarea-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/*  StyleGuide overwrite  */
+
+.message-box__textarea .sg-field-wrapper {
+  border-radius: var(--radius-x-large);
+}
+
+.message-box__textarea .sg-field-wrapper textarea {
+  padding: var(--space-medium);
+  padding-bottom: 0;
+}
+
+// NOTE: This fixes the bug reported in AITOOLS-689 (resizing textarea after minimize/expanding chat)
+.message-box__textarea .sg-field-wrapper textarea:placeholder-shown {
+  height: 60px !important;
+}
+
+.message-box__textarea .sg-field-wrapper--focused {
+  box-shadow: none;
+}
+
+.toolbar-top {
+  padding: var(--space-large) var(--space-large) var(--space-small) var(--space-large);
+}
+
+.toolbar-bottom {
+  padding: var(--space-medium);
+  overflow: visible;
+  background-color: transparent;
+}

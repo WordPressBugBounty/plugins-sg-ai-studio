@@ -1,0 +1,83 @@
+@import "@siteground/styleguide/lib/styles/base/styleguide";
+
+.md-drag-and-drop-wrapper {
+  height: 100%;
+  flex-basis: 100%;
+  position: relative;
+  overflow: hidden;
+
+  --media-figure-height: 226px;
+  --media-figure-height-no-items: 80%;
+  --media-figure-thumb-height: 200px;
+  --media-figure-file-width: 200px;
+  --media-upload-placeholder-min-width: 380px;
+  --media-upload-placeholder-min-width-no-items: 1000px;
+  --media-upload-placeholder-width: 380px;
+}
+
+.md-drag-and-drop {
+  position: absolute;
+  z-index: 3;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: var(--media-upload-placeholder-min-width-no-items);
+  opacity: 0.9;
+  background-color: var(--background-component-primary);
+
+  &__content {
+    border-radius: var(--radius-medium);
+    opacity: 1;
+    z-index: 3;
+  }
+}
+
+.md-drag-and-drop--icon {
+  width: 80px;
+  height: 80px;
+}
+
+.md-drag-and-drop-overlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-medium);
+  background-color: var(--background-component-primary);
+  opacity: 0.9;
+  z-index: 2;
+}
+
+.md-upload-card {
+  min-width: var(--media-upload-placeholder-min-width);
+  height: var(--media-image-height);
+}
+
+.md-upload-card__input {
+  display: none;
+}
+
+@media ($media-query-max-phone) {
+  .md-upload-card {
+    min-height: 150px;
+    grid-row-end: span 3;
+  }
+}
+
+.upload-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+}
+
+.upload-card--icon {
+  width: 50px;
+  height: 50px;
+}

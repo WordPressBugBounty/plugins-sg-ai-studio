@@ -1,0 +1,129 @@
+.wp-ai-studio-client-message {
+  display: flex;
+  flex-shrink: 0;
+  padding-left: 70px;
+  white-space: pre-wrap;
+}
+
+.wp-ai-studio-client-message__content {
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+  margin-left: auto;
+  border-radius: 8px;
+}
+
+.wp-ai-studio-client-message__content--pending {
+  opacity: 0.8;
+}
+
+.wp-ai-studio-client-message__content--unconfirmed {
+  border: 1px solid var(--color-error);
+}
+
+.wp-ai-studio-client-message__text {
+  padding: 12px 20px;
+  background-color: var(--color-background-tertiary);
+  border-radius: var(--radius-x-large);
+}
+
+.wp-ai-studio-client-message__error {
+  width: 100%;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: var(--color-error);
+  box-shadow: var(--first-level-box-shadow);
+  color: var(--color-button-white);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.wp-ai-studio-bot-message {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.wp-ai-studio-bot-message__text {
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-x-small);
+}
+
+.wp-ai-studio-bot-message__avatar {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.wp-ai-studio-bot-message + .wp-ai-studio-bot-message .wp-ai-studio-bot-message__avatar {
+  visibility: hidden;
+}
+
+.wp-ai-studio-message-vertical-align-bot + .wp-ai-studio-message-vertical-align-client,
+.wp-ai-studio-message-vertical-align-client + .wp-ai-studio-message-vertical-align-bot {
+  margin-top: 10px;
+}
+
+.wp-ai-studio-message-vertical-align-client + .wp-ai-studio-message-vertical-align-client,
+.wp-ai-studio-message-vertical-align-bot + .wp-ai-studio-message-vertical-align-bot {
+  margin-top: 2px;
+}
+
+.user-message-media {
+  margin-top: var(--space-medium);
+}
+
+.user-message-deleted-media {
+  margin-top: var(--space-small);
+}
+
+.user-message-image-container {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-medium);
+  background-color: var(--color-background-secondary);
+}
+
+.user-message-image {
+  display: flex;
+  max-width: 64px;
+  max-height: 64px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+
+.file-item {
+  width: 200px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-small);
+  padding: var(--space-small);
+  border: 1px solid var(--color-border-main);
+  border-radius: var(--radius-medium);
+  background-color: var(--color-background-primary);
+}
+
+.file-item__info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.file-item__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-item__meta {
+  white-space: nowrap;
+}

@@ -1,0 +1,23 @@
+.quick-actions {
+  &__button {
+    border: 1px solid var(--color-border-main);
+    font-family: var(--font-family-default);
+    font-weight: var(--typography-weight-medium);
+    text-transform: capitalize;
+    
+    &.active {
+      --button-base-overlay-background-focus: transparent;
+
+      border-color: var(--color-primary-600);
+    }
+  }
+
+  &__action-item {
+    border-radius: var(--radius-medium);
+
+    &:hover {
+      background-color: var(--action-hovered);
+      cursor: pointer;
+    }
+  }
+}
