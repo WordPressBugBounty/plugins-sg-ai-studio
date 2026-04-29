@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-$sg_ai_studio_i18n_strings  = array(
+$sg_ai_studio_i18n_strings = array(
 __( "Ask me anything WordPress related and I'll help." ), // src/chat/components/chat-footer/chat-footer.tsx:119
 __( "SiteGround AI Studio" ), // src/chat/components/chat-header/chat-header.tsx:65
 __( "Clear chat" ), // src/chat/components/chat-header/chat-header.tsx:73

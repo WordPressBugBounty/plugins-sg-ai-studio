@@ -179,6 +179,7 @@ class Admin {
 						'is_staging'       => Helper::is_staging_environment(),
 						'welcome_msg'      => $welcome_message_string,
 						'minimizeOverride' => $is_editor,
+						'plugin_version'   => \SG_AI_Studio\VERSION,
 						'quickActions'     => array(
 							'categories'   => array(
 								array(
