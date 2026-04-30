@@ -3,7 +3,7 @@ Contributors: Hristo Sg, siteground, sstoqnov, stoyangeorgiev, elenachavdarova, 
 Tags: ai, studio, siteground, content, management
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -214,6 +214,10 @@ This plugin connects to SiteGround's AI Studio API (api.studio.siteground.ai) to
 1. The SiteGround Optimizer Dashboard Page offers a quick look at the current optimization status of your website, along with shortcuts to the relevant optimization pages.
 
 == Changelog ==
+= 1.1.5 =
+Release Date Apr 30th, 2026
+* Code improvements
+
 = 1.1.4 =
 Release Date Apr 28th, 2026
 * NEW - Chat History
