@@ -108,24 +108,10 @@ class Coupons extends Rest_Controller_Base {
 			array(
 				array(
 					'methods'             => 'POST',
-					'callback'            => array( $this, 'batch_create_coupons' ),
+					'callback'            => array( $this, 'batch_operations' ),
 					'permission_callback' => array( $this, 'create_permissions_check' ),
-					'args'                => $this->get_batch_create_coupons_args(),
-					'description'         => 'Creates multiple coupons in a single request.',
-				),
-				array(
-					'methods'             => 'PUT',
-					'callback'            => array( $this, 'batch_update_coupons' ),
-					'permission_callback' => array( $this, 'update_permissions_check' ),
-					'args'                => $this->get_batch_update_coupons_args(),
-					'description'         => 'Updates multiple coupons in a single request.',
-				),
-				array(
-					'methods'             => 'DELETE',
-					'callback'            => array( $this, 'batch_delete_coupons' ),
-					'permission_callback' => array( $this, 'delete_permissions_check' ),
-					'args'                => $this->get_batch_delete_coupons_args(),
-					'description'         => 'Deletes multiple coupons in a single request.',
+					'args'                => $this->get_batch_args(),
+					'description'         => 'Batch create, update, and delete operations in a single request.',
 				),
 				'schema' => array( $this, 'get_batch_schema' ),
 			)
@@ -769,63 +755,35 @@ class Coupons extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Get arguments for batch creating coupons
+	 * Get arguments for batch operations
 	 *
 	 * @return array
 	 */
-	protected function get_batch_create_coupons_args() {
+	protected function get_batch_args() {
 		return array(
-			'coupons' => array(
-				'description' => 'List of coupons to create.',
+			'create' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type'       => 'object',
-					'properties' => $this->get_create_coupon_args(),
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'object' ),
+				'description' => 'Array of coupons to create.',
+				'required'    => false,
 			),
-		);
-	}
-
-	/**
-	 * Get arguments for batch updating coupons
-	 *
-	 * @return array
-	 */
-	protected function get_batch_update_coupons_args() {
-		return array(
-			'coupons' => array(
-				'description' => 'List of coupons to update.',
+			'update' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type'       => 'object',
-					'properties' => array(
-						'id' => array(
-							'description' => 'Unique identifier for the coupon.',
-							'type'        => 'integer',
-							'required'    => true,
-						),
-					),
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'object' ),
+				'description' => 'Array of coupons to update.',
+				'required'    => false,
 			),
-		);
-	}
-
-	/**
-	 * Get arguments for batch deleting coupons
-	 *
-	 * @return array
-	 */
-	protected function get_batch_delete_coupons_args() {
-		return array(
-			'ids' => array(
-				'description' => 'List of coupon IDs to delete.',
+			'delete' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'integer' ),
+				'description' => 'Array of coupon IDs to delete.',
+				'required'    => false,
+			),
+			'force' => array(
+				'type'        => 'boolean',
+				'default'     => false,
+				'description' => 'Whether to permanently delete coupons.',
+				'required'    => false,
 			),
 		);
 	}
@@ -856,28 +814,23 @@ class Coupons extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Batch create coupons
+	 * Process batch create operations
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @param array $items Items to create.
+	 * @return array Array with 'results' and 'errors' keys.
 	 */
-	public function batch_create_coupons( $request ) {
-		// Check if powermode is enabled.
-		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
-				),
-				412
+	protected function process_batch_creates( $items ) {
+		if ( empty( $items ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
 			);
 		}
 
-		$coupons = $request['coupons'];
 		$results = array();
 		$errors  = array();
 
-		foreach ( $coupons as $key => $coupon_data ) {
+		foreach ( $items as $key => $coupon_data ) {
 			// Create a new request for each coupon.
 			$sub_request = new WP_REST_Request( 'POST', '/' . $this->namespace . '/' . $this->base );
 
@@ -896,51 +849,30 @@ class Coupons extends Rest_Controller_Base {
 			}
 		}
 
-		$success = empty( $errors );
-
-		// Clear all caches.
-		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
-
-		return new WP_REST_Response(
-			array(
-				'success' => $success,
-				'data'    => array(
-					'created' => $results,
-					'errors'  => $errors,
-				),
-			),
-			$success ? 201 : 207
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
 		);
 	}
 
 	/**
-	 * Batch update coupons
+	 * Process batch update operations
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @param array $items Items to update.
+	 * @return array Array with 'results' and 'errors' keys.
 	 */
-	public function batch_update_coupons( $request ) {
-		// Check if powermode is enabled.
-		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
-				),
-				412
+	protected function process_batch_updates( $items ) {
+		if ( empty( $items ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
 			);
 		}
 
-		$coupons = $request['coupons'];
 		$results = array();
 		$errors  = array();
 
-		foreach ( $coupons as $key => $coupon_data ) {
+		foreach ( $items as $key => $coupon_data ) {
 			if ( ! isset( $coupon_data['id'] ) ) {
 				$errors[ $key ] = array(
 					'success' => false,
@@ -967,35 +899,62 @@ class Coupons extends Rest_Controller_Base {
 			}
 		}
 
-		$success = empty( $errors );
-
-		// Clear all caches.
-		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
-
-		return new WP_REST_Response(
-			array(
-				'success' => $success,
-				'data'    => array(
-					'updated' => $results,
-					'errors'  => $errors,
-				),
-			),
-			$success ? 200 : 207
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
 		);
 	}
 
 	/**
-	 * Batch delete coupons
+	 * Process batch delete operations
+	 *
+	 * @param array $ids Coupon IDs to delete.
+	 * @param bool  $force Whether to permanently delete.
+	 * @return array Array with 'results' and 'errors' keys.
+	 */
+	protected function process_batch_deletes( $ids, $force = false ) {
+		if ( empty( $ids ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
+			);
+		}
+
+		$results = array();
+		$errors  = array();
+
+		foreach ( $ids as $coupon_id ) {
+			// Create a new request for each coupon.
+			$sub_request = new WP_REST_Request( 'DELETE', '/' . $this->namespace . '/' . $this->base . '/' . $coupon_id );
+			$sub_request->set_param( 'id', $coupon_id );
+			$sub_request->set_param( 'force', $force );
+
+			// Delete the coupon.
+			$response = $this->delete_coupon( $sub_request );
+
+			if ( $response->is_error() || ! $response->get_data()['success'] ) {
+				$errors[ $coupon_id ] = $response->get_data();
+			} else {
+				$results[ $coupon_id ] = array(
+					'id'      => $coupon_id,
+					'message' => $response->get_data()['message'],
+				);
+			}
+		}
+
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
+		);
+	}
+
+	/**
+	 * Batch operations (create, update, delete)
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function batch_delete_coupons( $request ) {
+	public function batch_operations( $request ) {
 		// Check if powermode is enabled.
 		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
 			return new WP_REST_Response(
@@ -1007,26 +966,29 @@ class Coupons extends Rest_Controller_Base {
 			);
 		}
 
-		$ids     = $request['ids'];
-		$results = array();
-		$errors  = array();
+		// OBSERVABILITY: Log request for verification.
+		error_log( 'Batch request - Method: ' . $request->get_method() );
+		error_log( 'Batch request - Body: ' . wp_json_encode( $request->get_json_params() ) );
 
-		foreach ( $ids as $coupon_id ) {
-			// Create a new request for each coupon.
-			$sub_request = new WP_REST_Request( 'DELETE', '/' . $this->namespace . '/' . $this->base . '/' . $coupon_id );
-			$sub_request->set_param( 'id', $coupon_id );
+		$body = $request->get_json_params();
 
-			// Delete the coupon.
-			$response = $this->delete_coupon( $sub_request );
+		$create_items = isset( $body['create'] ) ? $body['create'] : array();
+		$update_items = isset( $body['update'] ) ? $body['update'] : array();
+		$delete_ids   = isset( $body['delete'] ) ? $body['delete'] : array();
+		$force        = isset( $body['force'] ) ? $body['force'] : false;
 
-			if ( $response->is_error() || ! $response->get_data()['success'] ) {
-				$errors[ $coupon_id ] = $response->get_data();
-			} else {
-				$results[ $coupon_id ] = $response->get_data()['message'];
-			}
-		}
+		// Process operations.
+		$create_result = $this->process_batch_creates( $create_items );
+		$update_result = $this->process_batch_updates( $update_items );
+		$delete_result = $this->process_batch_deletes( $delete_ids, $force );
 
-		$success = empty( $errors );
+		// Check if all operations succeeded.
+		$all_errors = array_merge(
+			$create_result['errors'],
+			$update_result['errors'],
+			$delete_result['errors']
+		);
+		$success = empty( $all_errors );
 
 		// Clear all caches.
 		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
@@ -1036,15 +998,25 @@ class Coupons extends Rest_Controller_Base {
 			\wp_cache_flush();
 		}
 
+		// Determine HTTP status.
+		$has_creates = ! empty( $create_result['results'] );
+		$http_status = $success ? ( $has_creates ? 201 : 200 ) : 207;
+
 		return new WP_REST_Response(
 			array(
 				'success' => $success,
 				'data'    => array(
-					'deleted' => $results,
-					'errors'  => $errors,
+					'create' => array_values( $create_result['results'] ),
+					'update' => array_values( $update_result['results'] ),
+					'delete' => array_values( $delete_result['results'] ),
+					'errors' => array(
+						'create' => $create_result['errors'],
+						'update' => $update_result['errors'],
+						'delete' => $delete_result['errors'],
+					),
 				),
 			),
-			$success ? 200 : 207
+			$http_status
 		);
 	}
 

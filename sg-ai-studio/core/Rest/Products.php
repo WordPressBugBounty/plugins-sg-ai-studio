@@ -110,24 +110,10 @@ class Products extends Rest_Controller_Base {
 			array(
 				array(
 					'methods'             => 'POST',
-					'callback'            => array( $this, 'batch_create_products' ),
+					'callback'            => array( $this, 'batch_operations' ),
 					'permission_callback' => array( $this, 'create_permissions_check' ),
-					'args'                => $this->get_batch_create_products_args(),
-					'description'         => 'Creates multiple products in a single request.',
-				),
-				array(
-					'methods'             => 'PUT',
-					'callback'            => array( $this, 'batch_update_products' ),
-					'permission_callback' => array( $this, 'update_permissions_check' ),
-					'args'                => $this->get_batch_update_products_args(),
-					'description'         => 'Updates multiple products in a single request.',
-				),
-				array(
-					'methods'             => 'DELETE',
-					'callback'            => array( $this, 'batch_delete_products' ),
-					'permission_callback' => array( $this, 'delete_permissions_check' ),
-					'args'                => $this->get_batch_delete_products_args(),
-					'description'         => 'Deletes multiple products in a single request.',
+					'args'                => $this->get_batch_args(),
+					'description'         => 'Batch create, update, and delete operations in a single request.',
 				),
 				'schema' => array( $this, 'get_batch_schema' ),
 			)
@@ -1270,68 +1256,34 @@ class Products extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Get arguments for batch creating products
+	 * Get arguments for batch operations
 	 *
 	 * @return array
 	 */
-	protected function get_batch_create_products_args() {
+	protected function get_batch_args() {
 		return array(
-			'products' => array(
-				'description' => 'List of products to create.',
+			'create' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type'       => 'object',
-					'properties' => $this->get_create_product_args(),
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'object' ),
+				'description' => 'Array of products to create.',
+				'required'    => false,
 			),
-		);
-	}
-
-	/**
-	 * Get arguments for batch updating products
-	 *
-	 * @return array
-	 */
-	protected function get_batch_update_products_args() {
-		return array(
-			'products' => array(
-				'description' => 'List of products to update.',
+			'update' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type'       => 'object',
-					'properties' => array(
-						'id' => array(
-							'description' => 'Unique identifier for the product.',
-							'type'        => 'integer',
-							'required'    => true,
-						),
-					),
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'object' ),
+				'description' => 'Array of products to update.',
+				'required'    => false,
 			),
-		);
-	}
-
-	/**
-	 * Get arguments for batch deleting products
-	 *
-	 * @return array
-	 */
-	protected function get_batch_delete_products_args() {
-		return array(
-			'ids'   => array(
-				'description' => 'List of product IDs to delete.',
+			'delete' => array(
 				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'required'    => true,
+				'items'       => array( 'type' => 'integer' ),
+				'description' => 'Array of product IDs to delete.',
+				'required'    => false,
 			),
 			'force' => array(
-				'description' => 'Whether to permanently delete products (true) or move to trash (false).',
 				'type'        => 'boolean',
 				'default'     => false,
+				'description' => 'Whether to permanently delete products (true) or move to trash (false).',
 				'required'    => false,
 			),
 		);
@@ -1363,28 +1315,23 @@ class Products extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Batch create products
+	 * Process batch create operations
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @param array $items Items to create.
+	 * @return array Array with 'results' and 'errors' keys.
 	 */
-	public function batch_create_products( $request ) {
-		// Check if powermode is enabled.
-		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
-				),
-				412
+	protected function process_batch_creates( $items ) {
+		if ( empty( $items ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
 			);
 		}
 
-		$products = $request['products'];
-		$results  = array();
-		$errors   = array();
+		$results = array();
+		$errors  = array();
 
-		foreach ( $products as $key => $product_data ) {
+		foreach ( $items as $key => $product_data ) {
 			// Create a new request for each product.
 			$sub_request = new WP_REST_Request( 'POST', '/' . $this->namespace . '/' . $this->base );
 
@@ -1403,51 +1350,30 @@ class Products extends Rest_Controller_Base {
 			}
 		}
 
-		$success = empty( $errors );
-
-		// Clear all caches.
-		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
-
-		return new WP_REST_Response(
-			array(
-				'success' => $success,
-				'data'    => array(
-					'created' => $results,
-					'errors'  => $errors,
-				),
-			),
-			$success ? 201 : 207
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
 		);
 	}
 
 	/**
-	 * Batch update products
+	 * Process batch update operations
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @param array $items Items to update.
+	 * @return array Array with 'results' and 'errors' keys.
 	 */
-	public function batch_update_products( $request ) {
-		// Check if powermode is enabled.
-		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
-				),
-				412
+	protected function process_batch_updates( $items ) {
+		if ( empty( $items ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
 			);
 		}
 
-		$products = $request['products'];
-		$results  = array();
-		$errors   = array();
+		$results = array();
+		$errors  = array();
 
-		foreach ( $products as $key => $product_data ) {
+		foreach ( $items as $key => $product_data ) {
 			if ( ! isset( $product_data['id'] ) ) {
 				$errors[ $key ] = array(
 					'success' => false,
@@ -1474,52 +1400,31 @@ class Products extends Rest_Controller_Base {
 			}
 		}
 
-		$success = empty( $errors );
-
-		// Clear all caches.
-		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
-
-		return new WP_REST_Response(
-			array(
-				'success' => $success,
-				'data'    => array(
-					'updated' => $results,
-					'errors'  => $errors,
-				),
-			),
-			$success ? 200 : 207
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
 		);
 	}
 
 	/**
-	 * Batch delete products
+	 * Process batch delete operations
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @param array $ids Product IDs to delete.
+	 * @param bool  $force Whether to permanently delete (true) or move to trash (false).
+	 * @return array Array with 'results' and 'errors' keys.
 	 */
-	public function batch_delete_products( $request ) {
-		// Check if powermode is enabled.
-		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
-				),
-				412
+	protected function process_batch_deletes( $ids, $force = false ) {
+		if ( empty( $ids ) ) {
+			return array(
+				'results' => array(),
+				'errors'  => array(),
 			);
 		}
 
-		$ids     = $request['ids'];
-		$force   = isset( $request['force'] ) ? \SG_AI_Studio\Helper\Helper::validate_force_param( $request['force'] ) : false;
 		$results = array();
 		$errors  = array();
 
-		foreach ( $ids as $key => $product_id ) {
+		foreach ( $ids as $product_id ) {
 			// Create a new request for each product.
 			$sub_request = new WP_REST_Request( 'DELETE', '/' . $this->namespace . '/' . $this->base . '/' . $product_id );
 			$sub_request->set_param( 'id', $product_id );
@@ -1531,11 +1436,60 @@ class Products extends Rest_Controller_Base {
 			if ( $response->is_error() || ! $response->get_data()['success'] ) {
 				$errors[ $product_id ] = $response->get_data();
 			} else {
-				$results[ $product_id ] = $response->get_data()['message'];
+				$results[ $product_id ] = array(
+					'id'      => $product_id,
+					'message' => $response->get_data()['message'],
+				);
 			}
 		}
 
-		$success = empty( $errors );
+		return array(
+			'results' => $results,
+			'errors'  => $errors,
+		);
+	}
+
+	/**
+	 * Batch operations (create, update, delete)
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function batch_operations( $request ) {
+		// Check if powermode is enabled.
+		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
+				),
+				412
+			);
+		}
+
+		// OBSERVABILITY: Log request for verification.
+		error_log( 'Batch request - Method: ' . $request->get_method() );
+		error_log( 'Batch request - Body: ' . wp_json_encode( $request->get_json_params() ) );
+
+		$body = $request->get_json_params();
+
+		$create_items = isset( $body['create'] ) ? $body['create'] : array();
+		$update_items = isset( $body['update'] ) ? $body['update'] : array();
+		$delete_ids   = isset( $body['delete'] ) ? $body['delete'] : array();
+		$force        = isset( $body['force'] ) ? $body['force'] : false;
+
+		// Process operations.
+		$create_result = $this->process_batch_creates( $create_items );
+		$update_result = $this->process_batch_updates( $update_items );
+		$delete_result = $this->process_batch_deletes( $delete_ids, $force );
+
+		// Check if all operations succeeded.
+		$all_errors = array_merge(
+			$create_result['errors'],
+			$update_result['errors'],
+			$delete_result['errors']
+		);
+		$success = empty( $all_errors );
 
 		// Clear all caches.
 		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
@@ -1545,15 +1499,25 @@ class Products extends Rest_Controller_Base {
 			\wp_cache_flush();
 		}
 
+		// Determine HTTP status.
+		$has_creates = ! empty( $create_result['results'] );
+		$http_status = $success ? ( $has_creates ? 201 : 200 ) : 207;
+
 		return new WP_REST_Response(
 			array(
 				'success' => $success,
 				'data'    => array(
-					'deleted' => $results,
-					'errors'  => $errors,
+					'create' => array_values( $create_result['results'] ),
+					'update' => array_values( $update_result['results'] ),
+					'delete' => array_values( $delete_result['results'] ),
+					'errors' => array(
+						'create' => $create_result['errors'],
+						'update' => $update_result['errors'],
+						'delete' => $delete_result['errors'],
+					),
 				),
 			),
-			$success ? 200 : 207
+			$http_status
 		);
 	}
 

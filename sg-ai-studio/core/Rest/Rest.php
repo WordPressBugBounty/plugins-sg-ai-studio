@@ -28,6 +28,7 @@ use SG_AI_Studio\Rest\WooCommerce_Categories;
 use SG_AI_Studio\Rest\Activity_Log;
 use SG_AI_Studio\Rest\Core;
 use SG_AI_Studio\Rest\Gutenberg;
+use SG_AI_Studio\Rest\Post_Types;
 
 /**
  * Handles custom REST API endpoints.
@@ -175,6 +176,13 @@ class Rest extends Rest_Controller_Base {
 	private $gutenberg;
 
 	/**
+	 * Post Types API instance
+	 *
+	 * @var Post_Types
+	 */
+	private $post_types;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -192,6 +200,7 @@ class Rest extends Rest_Controller_Base {
 		$this->settings_page = new Settings_Page();
 		$this->core          = new Core();
 		$this->gutenberg     = new Gutenberg();
+		$this->post_types    = new Post_Types();
 
 		// Only initialize WooCommerce endpoints if WooCommerce is active.
 		if ( function_exists( 'is_plugin_active' ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
@@ -252,6 +261,9 @@ class Rest extends Rest_Controller_Base {
 
 		// Register Gutenberg AI endpoints.
 		$this->gutenberg->register_rest_routes();
+
+		// Register post types endpoints.
+		$this->post_types->register_rest_routes();
 
 		// Register WooCommerce endpoints if WooCommerce is active.
 		if ( class_exists( 'WooCommerce' ) ) {
