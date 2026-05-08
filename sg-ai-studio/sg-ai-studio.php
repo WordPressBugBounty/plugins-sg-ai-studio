@@ -10,7 +10,7 @@
  * Plugin Name:       SG AI Studio
  * Plugin URI:        https://siteground.com
  * Description:       Manage your WordPress site with AI - create content, install plugins, and perform site management tasks effortlessly.
- * Version:           1.1.6
+ * Version:           1.1.7
  * Author:            SiteGround
  * Author URI:        https://www.siteground.com
  * Text Domain:       sg-ai-studio
@@ -33,7 +33,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 // Define version constant.
 if ( ! defined( __NAMESPACE__ . '\VERSION' ) ) {
-	define( __NAMESPACE__ . '\VERSION', '1.1.6' );
+	define( __NAMESPACE__ . '\VERSION', '1.1.7' );
 }
 
 // Define slug constant.
