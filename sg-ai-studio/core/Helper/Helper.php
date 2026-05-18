@@ -30,9 +30,11 @@ class Helper {
 	 * @param string $api_key AI Studio API key.
 	 * @param string $thread_id Optional thread ID for continuing conversations.
 	 * @param string $agent Optional agent name.
+	 * @param array  $model_config Optional model configuration (temperature, max_tokens, etc.).
+	 * @param string $chat_source Optional source identifier for the chat request.
 	 * @return array|\WP_Error The API response or WP_Error.
 	 */
-	public static function send_to_aistudio( $message, $api_key, $thread_id = '', $agent = '' ) {
+	public static function send_to_aistudio( $message, $api_key, $thread_id = '', $agent = '', $model_config = array(), $chat_source = '' ) {
 		if ( self::is_staging_environment() ) {
 			$hostname = 'https://api.staging.studio.siteground.ai';
 		} else {
@@ -62,6 +64,18 @@ class Helper {
 			$body['agent'] = $agent;
 		}
 
+		// Add model configuration for WP 7.0 compatibility.
+		// NOTE: This requires backend API support. If the backend doesn't
+		// support these parameters, they will be safely ignored.
+		if ( ! empty( $model_config ) ) {
+			$body['config'] = $model_config;
+		}
+
+		// Add chat_source to track request origin.
+		if ( ! empty( $chat_source ) ) {
+			$body['chat_source'] = $chat_source;
+		}
+
 		$args = array(
 			'headers'     => $headers,
 			'body'        => wp_json_encode( $body ),
@@ -82,10 +96,11 @@ class Helper {
 	 * @param string $thread_id Optional thread ID for continuing conversations.
 	 * @param string $agent Optional agent name.
 	 * @param int    $post_id Optional post ID to attach images to.
+	 * @param string $chat_source Optional source identifier for the chat request.
 	 * @return array The response data.
 	 */
-	public static function process_chat_request( $message, $api_key, $thread_id = '', $agent = '', $post_id = 0 ) {
-		$response = self::send_to_aistudio( $message, $api_key, $thread_id, $agent );
+	public static function process_chat_request( $message, $api_key, $thread_id = '', $agent = '', $post_id = 0, $chat_source = '' ) {
+		$response = self::send_to_aistudio( $message, $api_key, $thread_id, $agent, array(), $chat_source );
 
 		if ( is_wp_error( $response ) ) {
 			return array(
@@ -448,6 +463,15 @@ class Helper {
 	}
 
 	/**
+	 * Schedule the temp files cleanup cron job to run daily
+	 */
+	public static function schedule_temp_cleanup_cron() {
+		if ( ! wp_next_scheduled( 'sg_ai_studio_cleanup_temp_cron' ) ) {
+			wp_schedule_event( time(), 'daily', 'sg_ai_studio_cleanup_temp_cron' );
+		}
+	}
+
+	/**
 	 * WordPress cron job hook for refreshing authentication keys
 	 */
 	public static function cron_refresh_keys() {
@@ -465,6 +489,13 @@ class Helper {
 		} else {
 
 		}
+	}
+
+	/**
+	 * WordPress cron job hook for cleaning up temporary files
+	 */
+	public static function cron_cleanup_temp_files() {
+		self::cleanup_temp_files( 24 );
 	}
 
 	/**
@@ -662,6 +693,8 @@ class Helper {
 			'sg_ai_studio_activity_log_lifetime',
 			'sg_ai_studio_settings',
 			'sg_ai_studio_connected',
+			'sg_ai_studio_provider_connected',
+			'sg_ai_studio_connected_url',
 		);
 
 		foreach( $options as $option ) {
@@ -686,6 +719,7 @@ class Helper {
 		$cron_hooks = array(
 			'sg_ai_studio_clear_logs_cron',
 			'sg_ai_studio_key_refresh_cron',
+			'sg_ai_studio_cleanup_temp_cron',
 		);
 
 		foreach ( $cron_hooks as $hook ) {
@@ -716,11 +750,102 @@ class Helper {
 			}
 		}
 
+		// Remove temporary files directory.
+		$upload_dir = wp_upload_dir();
+		$tmp_dir    = $upload_dir['basedir'] . '/sg-ai-studio-tmp';
+
+		if ( file_exists( $tmp_dir ) ) {
+			$files = glob( $tmp_dir . '/*' );
+			foreach ( $files as $file ) {
+				if ( is_file( $file ) ) {
+					wp_delete_file( $file );
+				}
+			}
+			// Try to remove the directory itself.
+			if ( ! @rmdir( $tmp_dir ) ) {
+				$errors[] = 'Failed to remove temporary files directory';
+			}
+		}
+
 		return array(
 			'success' => empty( $errors ),
 			'errors'  => $errors,
 		);
 	}
+	/**
+	 * Send request to AI Studio generation API (v1)
+	 *
+	 * Handles both text and image generation requests with different endpoints
+	 * and request formats.
+	 *
+	 * @param array  $question_parts Array of question parts with 'type' and content (for text) or prompt string (for image).
+	 * @param string $api_key AI Studio API key.
+	 * @param array  $model_config Optional model configuration.
+	 * @param bool   $is_image_generation Whether this is an image generation request.
+	 * @param string $chat_source Optional source identifier for the chat request.
+	 * @return array|\WP_Error The API response or WP_Error.
+	 */
+	public static function send_to_text_generation_api( $question_parts, $api_key, $model_config = array(), $is_image_generation = false, $chat_source = '' ) {
+		if ( self::is_staging_environment() ) {
+			$hostname = 'https://api.staging.studio.siteground.ai';
+		} else {
+			$hostname = 'https://api.studio.siteground.ai';
+		}
+
+		// Set endpoint and build body based on generation type.
+		if ( $is_image_generation ) {
+			$url  = $hostname . '/api/v1/image/generate';
+			$body = array(
+				'prompt' => is_array( $question_parts ) ? $question_parts['prompt'] : $question_parts,
+			);
+
+			// Add aspect ratio if provided in model config.
+			if ( ! empty( $model_config['aspect_ratio'] ) ) {
+				$body['aspect_ratio'] = $model_config['aspect_ratio'];
+			}
+
+			// Add chat_source to track request origin.
+			if ( ! empty( $chat_source ) ) {
+				$body['chat_source'] = $chat_source;
+			}
+		} else {
+			$url  = $hostname . '/api/v1/text/generate';
+			$body = array(
+				'question' => $question_parts,
+				'language' => '',
+				'service'  => true,
+			);
+
+			// Add model configuration if provided.
+			if ( ! empty( $model_config ) ) {
+				$body['config'] = $model_config;
+			}
+
+			// Add chat_source to track request origin.
+			if ( ! empty( $chat_source ) ) {
+				$body['chat_source'] = $chat_source;
+			}
+		}
+
+		$headers = array(
+			'Authorization' => 'Bearer ' . $api_key,
+			'Content-Type'  => 'application/json',
+			'Connection'    => 'keep-alive',
+			'Accept'        => '*/*',
+		);
+
+		$args = array(
+			'headers'     => $headers,
+			'body'        => wp_json_encode( $body ),
+			'method'      => 'POST',
+			'timeout'     => 90000000,
+			'redirection' => 45,
+			'sslverify'   => false,
+		);
+
+		return wp_remote_post( $url, $args );
+	}
+
 	/**
 	 * Generates a token for AI Studio Service.
 	 *
@@ -776,6 +901,70 @@ class Helper {
 	}
 
 	/**
+	 * Clean up old temporary files from the sg-ai-studio-tmp directory.
+	 *
+	 * Removes files older than 24 hours to prevent disk space accumulation.
+	 *
+	 * @param int $max_age_hours Maximum age of files to keep in hours (default: 24).
+	 * @return array Cleanup results with count of deleted files.
+	 */
+	public static function cleanup_temp_files( $max_age_hours = 24 ) {
+		$upload_dir = wp_upload_dir();
+		$tmp_dir    = $upload_dir['basedir'] . '/sg-ai-studio-tmp';
+
+		if ( ! file_exists( $tmp_dir ) ) {
+			return array(
+				'success' => true,
+				'deleted' => 0,
+				'message' => 'Temp directory does not exist.',
+			);
+		}
+
+		$files           = glob( $tmp_dir . '/*' );
+		$deleted_count   = 0;
+		$max_age_seconds = $max_age_hours * HOUR_IN_SECONDS;
+		$current_time    = time();
+
+		foreach ( $files as $file ) {
+			if ( ! is_file( $file ) ) {
+				continue;
+			}
+
+			$file_age = $current_time - filemtime( $file );
+
+			if ( $file_age > $max_age_seconds ) {
+				if ( wp_delete_file( $file ) ) {
+					++$deleted_count;
+				}
+			}
+		}
+
+		return array(
+			'success' => true,
+			'deleted' => $deleted_count,
+			'message' => sprintf( 'Deleted %d temporary file(s).', $deleted_count ),
+		);
+	}
+
+	/**
+	 * Detect if site is hosted on SiteGround.
+	 *
+	 * Checks for SiteGround-specific file system markers.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return int 1 if SiteGround hosted, 0 otherwise.
+	 */
+	public static function is_siteground() {
+		// Bail if open_basedir restrictions are set, and we are not able to check certain directories.
+		if ( ! empty( ini_get( 'open_basedir' ) ) ) {
+			return 0;
+		}
+
+		return (int) ( @file_exists( '/etc/yum.repos.d/baseos.repo' ) && @file_exists( '/Z' ) );
+	}
+
+	/**
 	 * Process chat request for Gutenberg blocks (preserves block markup)
 	 * This is an extension of process_chat_request specifically for Gutenberg block generation
 	 * that skips aggressive HTML cleanup to preserve block structure.
@@ -785,10 +974,11 @@ class Helper {
 	 * @param string $thread_id Optional thread ID for continuing conversations.
 	 * @param string $agent Optional agent name.
 	 * @param int    $post_id Optional post ID to attach images to.
+	 * @param string $chat_source Optional source identifier for the chat request.
 	 * @return array The response data.
 	 */
-	public static function process_gutenberg_block_request( $message, $api_key, $thread_id = '', $agent = '', $post_id = 0 ) {
-		$response = self::send_to_aistudio( $message, $api_key, $thread_id, $agent );
+	public static function process_gutenberg_block_request( $message, $api_key, $thread_id = '', $agent = '', $post_id = 0, $chat_source = '' ) {
+		$response = self::send_to_aistudio( $message, $api_key, $thread_id, $agent, array(), $chat_source );
 
 		if ( is_wp_error( $response ) ) {
 			return array(

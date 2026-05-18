@@ -364,6 +364,19 @@ class Rest extends Rest_Controller_Base {
 			)
 		);
 
+		// Connection status for the WP 7.0+ Connectors page.
+		register_rest_route(
+			$this->namespace,
+			'/connection-status',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_connection_status' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+			)
+		);
+
 		register_rest_route(
 			$this->namespace,
 			'/acl',
@@ -616,6 +629,23 @@ class Rest extends Rest_Controller_Base {
 	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return \WP_REST_Response Response object on success.
 	 */
+	/**
+	 * Returns the plugin connection status for the WP 7.0+ Connectors page.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function get_connection_status() {
+		$connected  = (bool) get_option( 'sg_ai_studio_connected', false );
+		$client_id  = get_option( 'sg_ai_studio_client_id', '' );
+		$client_key = get_option( 'sg_ai_studio_client_key', '' );
+
+		return rest_ensure_response(
+			array(
+				'connected' => $connected && ! empty( $client_id ) && ! empty( $client_key ),
+			)
+		);
+	}
+
 	public function get_usage( $request ) {
 		$auth_token = Helper::generate_ai_studio_token();
 

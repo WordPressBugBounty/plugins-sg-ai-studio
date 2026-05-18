@@ -438,7 +438,7 @@ class Gutenberg extends Rest_Controller_Base {
 		$message = $this->build_text_message( $text, $prompt, $action_type );
 
 		// Process request using Helper class (handles NDJSON response parsing).
-		$result = Helper::process_chat_request( $message, $auth_token );
+		$result = Helper::process_chat_request( $message, $auth_token, '', '', 0, 'ai_studio_gutenberg' );
 
 		// Check if processing failed.
 		if ( ! $result['success'] ) {
@@ -554,7 +554,7 @@ class Gutenberg extends Rest_Controller_Base {
 
 		// Process request using Helper class (handles image generation automatically).
 		// Pass post_id to attach generated images to the post
-		$result = Helper::process_chat_request( $message, $auth_token, '', '', $post_id );
+		$result = Helper::process_chat_request( $message, $auth_token, '', '', $post_id, 'ai_studio_gutenberg' );
 
 		// Check if processing failed.
 		if ( ! $result['success'] ) {
@@ -619,7 +619,7 @@ class Gutenberg extends Rest_Controller_Base {
 		);
 
 		// Process request using Helper class specialized method for Gutenberg blocks.
-		$result = Helper::process_gutenberg_block_request( $message, $auth_token, '', '', $post_id );
+		$result = Helper::process_gutenberg_block_request( $message, $auth_token, '', '', $post_id, 'ai_studio_gutenberg' );
 
 		// Check if processing failed.
 		if ( ! $result['success'] ) {

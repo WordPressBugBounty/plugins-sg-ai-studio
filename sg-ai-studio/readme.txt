@@ -1,9 +1,9 @@
-=== SG AI Studio ===
+=== AI Agent by SiteGround ===
 Contributors: Hristo Sg, siteground, sstoqnov, stoyangeorgiev, elenachavdarova, ignatggeorgiev
-Tags: ai, studio, siteground, content, management
+Tags: ai, studio, siteground, content, management, connector, artificial intelligence
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -12,7 +12,7 @@ Manage your WordPress site with AI - create content, install plugins, and perfor
 
 == Description ==
 
-The SG AI Studio plugin lets you manage your WordPress and WooCommerce sites with an AI agent. Do more and faster site maintenance, updates, content, SEO and more WordPress tasks - on one or multiple sites - through a simple chat.
+The AI Agent by SiteGround plugin lets you manage your WordPress and WooCommerce sites with an AI agent. Do more and faster site maintenance, updates, content, SEO and more WordPress tasks - on one or multiple sites - through a simple chat.
 
 
 ## Why get this plugin?
@@ -138,7 +138,7 @@ Connect any number of WordPress sites to SiteGround AI Studio and manage them al
 
 ## 🚀 Getting Started
 
-To start using the AI Agent for WordPress, you need to sign up for [SiteGround AI Studio](https://www.siteground.com/ai-studio?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description) and activate the SG AI Studio plugin. 
+To start using the AI Agent for WordPress, you need to sign up for [SiteGround AI Studio](https://www.siteground.com/ai-studio?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description) and activate the AI Agent by SiteGround plugin. 
 
 The plugin works with any WordPress site, regardless of where it is hosted. 
 
@@ -147,7 +147,7 @@ If your WordPress site is hosted on SiteGround servers, you can [enable the conn
 
 ### What is AI Studio by SiteGround?
 
-SiteGround [AI Studio](https://www.siteground.com/ai-studio?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description) is the connector that powers the SG AI Studio plugin with AI capabilities. 
+SiteGround [AI Studio](https://www.siteground.com/ai-studio?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description) is the connector that powers the AI Agent by SiteGround plugin with AI capabilities. 
 
 By signing up for AI Studio you not only enable the AI Agent for WordPress, but also get a unified platform to chat with multiple LLMs: Claude, ChatGPT, Gemini, Imagen, Nano Banana, and gives you access to 14+ agents that perform different business and marketing tasks.
 
@@ -156,7 +156,7 @@ By signing up for AI Studio you not only enable the AI Agent for WordPress, but 
 
 1. **Sign up for** [**SiteGround AI Studio**](https://www.siteground.com/ai-studio?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description)
 
-2. Log into your WordPress admin and [**activate SG AI Studio plugin**](https://www.siteground.com/kb/use-wordpress-ai-agent-external-sites/?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description).
+2. Log into your WordPress admin and [**activate AI Agent by SiteGround plugin**](https://www.siteground.com/kb/use-wordpress-ai-agent-external-sites/?utm_source=wordpress\&utm_medium=plugin-directory\&utm_content=description).
 
 3. **Paste the connection key** from your AI Studio account to link your site. 
 
@@ -214,6 +214,11 @@ This plugin connects to SiteGround's AI Studio API (api.studio.siteground.ai) to
 1. The SiteGround Optimizer Dashboard Page offers a quick look at the current optimization status of your website, along with shortcuts to the relevant optimization pages.
 
 == Changelog ==
+= 1.1.8 =
+Release Date May 18th, 2026
+* Add WP core AI functionalities support
+* Improvements to initial connection flows
+
 = 1.1.7 =
 Release Date May 8th, 2026
 * WP-CLI connection improvements

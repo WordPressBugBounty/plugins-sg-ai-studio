@@ -16,6 +16,8 @@ use SG_AI_Studio\Rest\Rest;
 use SG_AI_Studio\CLI\AI_Studio_CLI;
 use SG_AI_Studio\Activity_Log\Activity_Log;
 use SG_AI_Studio\Gutenberg\Gutenberg;
+use SG_AI_Studio\Ai_Provider\Ai_Provider_Hooks;
+use SG_AI_Studio\Install_Service\Install_Service;
 
 /**
  * Loader functions and main initialization class.
@@ -64,15 +66,30 @@ class Loader {
 	public $helper;
 
 	/**
+	 * AI Provider hooks instance
+	 *
+	 * @var Ai_Provider_Hooks|null
+	 */
+	public $ai_provider;
+
+	/**
+	 * Install Service instance
+	 *
+	 * @var Install_Service
+	 */
+	public $install_service;
+
+	/**
 	 * Constructor - initialize plugin components
 	 */
 	public function __construct() {
-		$this->admin        = new Admin();
-		$this->blocks       = new BlocksManager();
-		$this->rest         = new Rest();
-		$this->activity_log = new Activity_Log();
-		$this->gutenberg    = new Gutenberg();
-		$this->helper       = new Helper();
+		$this->admin           = new Admin();
+		$this->blocks          = new BlocksManager();
+		$this->rest            = new Rest();
+		$this->activity_log    = new Activity_Log();
+		$this->gutenberg       = new Gutenberg();
+		$this->helper          = new Helper();
+		$this->install_service = new Install_Service();
 
 		$this->add_admin_hooks();
 		$this->add_activity_log_hooks();
@@ -81,6 +98,8 @@ class Loader {
 		$this->add_gutenberg_hooks();
 		$this->add_cli_hooks();
 		$this->add_helper_hooks();
+		$this->add_ai_provider_hooks();
+		$this->add_install_service_hooks();
 	}
 
 	/**
@@ -185,11 +204,66 @@ class Loader {
 
 		if ( (bool) get_option('sg_ai_studio_connected', false ) ) {
 			add_action( 'init', array( $this->helper, 'schedule_key_refresh_cron' ) );
+			add_action( 'init', array( $this->helper, 'schedule_temp_cleanup_cron' ) );
 		}
 
 		add_action( 'sg_ai_studio_key_refresh_cron', array( $this->helper, 'cron_refresh_keys' ) );
+		add_action( 'sg_ai_studio_cleanup_temp_cron', array( $this->helper, 'cron_cleanup_temp_files' ) );
 
 
 	}
 
+	/**
+	 * Register AI Provider hooks
+	 *
+	 * Initializes the SG AI Studio provider for the WordPress PHP AI Client SDK
+	 * and registers the connector on the WP 7.0+ Settings > Connectors page.
+	 *
+	 * @return void
+	 */
+	public function add_ai_provider_hooks() {
+		if ( ! class_exists( 'WordPress\AiClient\AiClient' ) ) {
+			return;
+		}
+
+		$this->ai_provider = new Ai_Provider_Hooks();
+
+		// Register the provider early so it's available in the registry.
+		add_action( 'init', array( $this->ai_provider, 'register_provider' ), -1 );
+
+		// Reorder after all providers have been registered. Using admin_init ensures
+		// this runs after WordPress core registers the default providers.
+		add_action( 'admin_init', array( $this->ai_provider, 'prepend_provider_in_registry' ), 999 );
+
+		// Show synthetic API key when provider is connected.
+		add_filter( 'pre_option_connectors_ai_ai_studio_siteground_api_key', array( $this->ai_provider, 'filter_connector_option' ) );
+
+		// Allow empty API key for AI Studio connector (for disconnect).
+		add_filter( 'rest_pre_update_setting', array( $this->ai_provider, 'allow_empty_connector_api_key' ), 10, 3 );
+
+		// Admin notices for provider state changes.
+		add_action( 'admin_notices', array( $this->ai_provider, 'show_provider_state_notice' ) );
+
+		// Detect when connector option is deleted/updated.
+		add_action( 'deleted_option', array( $this->ai_provider, 'handle_connector_option_deleted' ) );
+		add_action( 'updated_option', array( $this->ai_provider, 'handle_connector_option_updated' ), 10, 3 );
+
+		// Enqueue CSS to hide API key field on Connectors page.
+		add_action( 'admin_enqueue_scripts', array( $this->ai_provider, 'enqueue_connectors_css' ) );
+	}
+
+	/**
+	 * Add the install service hooks.
+	 *
+	 * @since 1.1.8
+	 */
+	public function add_install_service_hooks() {
+		// Add the install action.
+		add_action( 'upgrader_process_complete', array( $this->install_service, 'install' ) );
+
+		// Force the installation process if it is not completed.
+		if ( false === get_option( 'sg_ai_studio_version', false ) ) {
+			add_action( 'init', array( $this->install_service, 'install' ) );
+		}
+	}
 }

@@ -79,12 +79,6 @@ class AI_Studio_CLI {
 		$api_result = Helper::init_client_auth( $client_id, $link_id );
 		// Check if API call failed.
 		if ( ! $api_result['success'] ) {
-			// API call failed - handled below.
-		} else {
-			update_option( 'sg_ai_studio_connected', true );
-		}
-		// Check if API call failed.
-		if ( ! $api_result['success'] ) {
 			\WP_CLI::error(
 				sprintf(
 					'API call failed: %s',
@@ -107,7 +101,7 @@ class AI_Studio_CLI {
 			}
 
 			// Determine API URL based on environment.
-			if ( defined( '\AI_STUDIO_ENV' ) && \AI_STUDIO_ENV === 'staging' ) {
+			if ( defined( '\SG_AI_STUDIO_ENV' ) && \SG_AI_STUDIO_ENV === 'staging' ) {
 				$api_url = 'https://api.staging.studio.siteground.ai/api/v1/wp/wp-ping';
 			} else {
 				$api_url = 'https://api.studio.siteground.ai/api/v1/wp/wp-ping';
@@ -137,6 +131,7 @@ class AI_Studio_CLI {
 				return;
 			} else {
 				update_option( 'sg_ai_studio_connected', true );
+				update_option( 'sg_ai_studio_provider_connected', true );
 			}
 
 			\WP_CLI::success( 'Ping handshake completed successfully.' );
@@ -144,6 +139,7 @@ class AI_Studio_CLI {
 			// Without --ping flag, maintain backwards compatibility.
 			// Set connected status based on init_client_auth success (current behavior).
 			update_option( 'sg_ai_studio_connected', true );
+			update_option( 'sg_ai_studio_provider_connected', true );
 		}
 
 		\WP_CLI::success(

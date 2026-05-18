@@ -75,6 +75,7 @@ class Admin {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
+		global $wp_version;
 
 		// Bail if we are on different page.
 		if ( false !== $this->is_plugin_page() ) {
@@ -99,12 +100,14 @@ class Admin {
 				'WPAIStudioSettingsConfig',
 				array(
 					'config'       => array(
-						'home_url'   => get_home_url(),
-						'rest_base'  => rtrim( esc_url_raw( rest_url() ), '/' ),
-						'localeSlug' => join( '-', explode( '_', \get_user_locale() ) ),
-						'locale'     => self::get_i18n_data_json(),
-						'wp_nonce'   => wp_create_nonce( 'wp_rest' ),
-						'assetsPath' => SG_AI_Studio\URL . '/assets/',
+						'home_url'      => get_home_url(),
+						'rest_base'     => rtrim( esc_url_raw( rest_url() ), '/' ),
+						'localeSlug'    => join( '-', explode( '_', \get_user_locale() ) ),
+						'locale'        => self::get_i18n_data_json(),
+						'wp_nonce'      => wp_create_nonce( 'wp_rest' ),
+						'assetsPath'    => SG_AI_Studio\URL . '/assets/',
+						'is_siteground' => \SG_AI_Studio\Helper\Helper::is_siteground(),
+						'wp_version'    => $wp_version,
 					),
 					'page'         => 'settings',
 					'domElementId' => 'wp-ai-studio-settings-container',
@@ -248,8 +251,8 @@ class Admin {
 	 */
 	public function add_plugin_pages() {
 		add_menu_page(
-			esc_html__( 'AI Studio Agent', 'sg-ai-studio' ), // Page title.
-			esc_html__( 'AI Studio Agent', 'sg-ai-studio' ), // Menu item title.
+			esc_html__( 'AI Agent', 'sg-ai-studio' ), // Page title.
+			esc_html__( 'AI Agent', 'sg-ai-studio' ), // Menu item title.
 			'manage_options',
 			\SG_AI_Studio\PLUGIN_SLUG,                   // Page slug.
 			array( $this, 'render' ),
