@@ -1,9 +1,9 @@
 === AI Agent by SiteGround ===
 Contributors: Hristo Sg, siteground, sstoqnov, stoyangeorgiev, elenachavdarova, ignatggeorgiev
-Tags: ai, studio, siteground, content, management, connector, artificial intelligence
+Tags: AI, agent, connector, siteground, chatbot
 Requires at least: 5.0
-Tested up to: 6.9
-Stable tag: 1.1.8
+Tested up to: 7.0
+Stable tag: 1.1.9
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -214,6 +214,12 @@ This plugin connects to SiteGround's AI Studio API (api.studio.siteground.ai) to
 1. The SiteGround Optimizer Dashboard Page offers a quick look at the current optimization status of your website, along with shortcuts to the relevant optimization pages.
 
 == Changelog ==
+= 1.1.9 =
+Release Date May 20th, 2026
+* Add AI Image Refinement support
+* Add introductory banner to chat
+* Translation improvements
+
 = 1.1.8 =
 Release Date May 18th, 2026
 * Add WP core AI functionalities support

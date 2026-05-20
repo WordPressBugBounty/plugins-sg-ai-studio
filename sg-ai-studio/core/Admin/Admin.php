@@ -9,6 +9,7 @@ namespace SG_AI_Studio\Admin;
 
 use SG_AI_Studio;
 use SG_AI_Studio\Helper\Helper;
+use SiteGround_i18n\i18n_Service;
 
 /**
  * Handle all hooks for our custom admin page.
@@ -94,6 +95,9 @@ class Admin {
 			// Get thread_id from request or from user-specific transient.
 			$thread_id = get_transient( 'sg_ai_studio_thread_id_' . $user_id );
 
+			// Create i18n service instance.
+			$i18n_service = new i18n_Service( 'sg-ai-studio' );
+
 			// Localize the script with necessary data for settings page.
 			wp_localize_script(
 				'siteground-ai-studio-settings',
@@ -103,7 +107,7 @@ class Admin {
 						'home_url'      => get_home_url(),
 						'rest_base'     => rtrim( esc_url_raw( rest_url() ), '/' ),
 						'localeSlug'    => join( '-', explode( '_', \get_user_locale() ) ),
-						'locale'        => self::get_i18n_data_json(),
+						'locale'        => $i18n_service->get_i18n_data_json(),
 						'wp_nonce'      => wp_create_nonce( 'wp_rest' ),
 						'assetsPath'    => SG_AI_Studio\URL . '/assets/',
 						'is_siteground' => \SG_AI_Studio\Helper\Helper::is_siteground(),
@@ -166,6 +170,9 @@ class Admin {
 				$is_editor = true;
 			}
 
+			// Create i18n service instance.
+			$i18n_service = new i18n_Service( 'sg-ai-studio' );
+
 			// Localize the script with necessary data.
 			wp_localize_script(
 				'siteground-ai-studio-chat',
@@ -176,13 +183,14 @@ class Admin {
 						'rest_base'        => rtrim( esc_url_raw( rest_url() ), '/' ),
 						'threadId'         => $thread_id,
 						'localeSlug'       => join( '-', explode( '_', \get_user_locale() ) ),
-						'locale'           => self::get_i18n_data_json(),
+						'locale'           => $i18n_service->get_i18n_data_json(),
 						'wp_nonce'         => wp_create_nonce( 'wp_rest' ),
 						'assetsPath'       => \SG_AI_Studio\URL . '/assets/',
 						'is_staging'       => Helper::is_staging_environment(),
 						'welcome_msg'      => $welcome_message_string,
 						'minimizeOverride' => $is_editor,
 						'plugin_version'   => \SG_AI_Studio\VERSION,
+						'wp_version'    => $wp_version,
 						'quickActions'     => array(
 							'categories'   => array(
 								array(
@@ -333,59 +341,4 @@ class Admin {
 
 		return false;
 	}
-
-
-	/**
-	 * Get i18n strings as a JSON-encoded string
-	 *
-	 * @since 1.0.2
-	 *
-	 * @return string The locale as JSON
-	 */
-	public static function get_i18n_data_json() {
-		global $wp_filesystem;
-
-		// Initialize the WP filesystem, no more using 'file-put-contents' function.
-		if ( empty( $wp_filesystem ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
-		// Get the user locale.
-		$locale = \get_user_locale();
-
-		// Build the full path to the file.
-		$i18n_json = \SG_AI_Studio\DIR . '/languages/sg-ai-studio' . '-' . $locale . '.json';
-
-		// Check if the files exists and it's readable.
-		if ( $wp_filesystem->is_file( $i18n_json ) && $wp_filesystem->is_readable( $i18n_json ) ) {
-			// Get the locale data.
-			$locale_data = $wp_filesystem->get_contents( $i18n_json );
-			if ( $locale_data ) {
-				return $locale_data;
-			}
-		}
-
-		// Return valid empty Jed locale.
-		return json_encode(
-			array(
-				'' => array(
-					'domain' => 'sg-ai-studio',
-					'lang'   => is_admin() ? \get_user_locale() : \get_locale(),
-				),
-			)
-		);
-	}
-
-	/**
-	 * Loads the textdomain for the plugin.
-	 *
-	 * @since 1.0.2
-	 *
-	 * @return void
-	 */
-	public function load_textdomain() {
-		// Get the user locale.
-		$locale = \get_user_locale();
-	}
-
 }

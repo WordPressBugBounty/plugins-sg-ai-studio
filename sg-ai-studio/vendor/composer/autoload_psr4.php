@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'SiteGround_i18n\\' => array($vendorDir . '/siteground/siteground-i18n/src'),
+    'SiteGround_Helper\\' => array($vendorDir . '/siteground/siteground-helper/src'),
     'SG_AI_Studio\\' => array($baseDir . '/core'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-factory/src', $vendorDir . '/psr/http-message/src'),
     'Psr\\Http\\Client\\' => array($vendorDir . '/psr/http-client/src'),

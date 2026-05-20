@@ -16,6 +16,7 @@ class ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88
         'S' => 
         array (
             'SiteGround_i18n\\' => 16,
+            'SiteGround_Helper\\' => 18,
             'SG_AI_Studio\\' => 13,
         ),
         'P' => 
@@ -44,6 +45,10 @@ class ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88
         'SiteGround_i18n\\' => 
         array (
             0 => __DIR__ . '/..' . '/siteground/siteground-i18n/src',
+        ),
+        'SiteGround_Helper\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/siteground/siteground-helper/src',
         ),
         'SG_AI_Studio\\' => 
         array (

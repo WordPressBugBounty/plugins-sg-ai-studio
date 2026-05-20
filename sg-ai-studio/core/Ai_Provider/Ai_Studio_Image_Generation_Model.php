@@ -39,8 +39,9 @@ class Ai_Studio_Image_Generation_Model extends AbstractApiBasedModel implements 
 			return $this->buildErrorResult( 'Failed to generate authentication token.' );
 		}
 
-		$description  = $this->extractPromptText( $prompt );
-		$config       = $this->getConfig();
+		$description = $this->extractPromptText( $prompt );
+		$config      = $this->getConfig();
+		$has_images  = $this->hasImagesInPrompt( $prompt );
 
 		// Build model config with aspect ratio if provided.
 		$model_config = array();
@@ -49,11 +50,16 @@ class Ai_Studio_Image_Generation_Model extends AbstractApiBasedModel implements 
 			$model_config['aspect_ratio'] = $aspect_ratio;
 		}
 
-		// Determine chat_source based on calling context.
-		$chat_source = $this->determine_chat_source();
-
-		// Use the description as the prompt for image generation.
-		$response = Helper::send_to_text_generation_api( $description, $token, $model_config, true, $chat_source );
+		// For image editing/refinement (when prompt contains images), use the edit endpoint.
+		// For regular generation, use the dedicated image generation endpoint.
+		if ( $has_images ) {
+			$chat_source    = $this->determine_chat_source( true );
+			$question_parts = $this->buildImageQuestionParts( $prompt, $description );
+			$response       = Helper::send_to_text_generation_api( $question_parts, $token, $model_config, false, $chat_source, true );
+		} else {
+			$chat_source = $this->determine_chat_source( false );
+			$response    = Helper::send_to_text_generation_api( $description, $token, $model_config, true, $chat_source );
+		}
 
 		if ( is_wp_error( $response ) ) {
 			return $this->buildErrorResult( $response->get_error_message() );
@@ -97,24 +103,46 @@ class Ai_Studio_Image_Generation_Model extends AbstractApiBasedModel implements 
 	}
 
 	/**
-	 * Builds question parts array for image generation requests.
-	 *
-	 * Handles both text prompts and any reference images that might be included.
+	 * Checks if the prompt contains any images.
 	 *
 	 * @param list<Message> $messages The SDK message objects.
-	 * @param string        $enhanced_prompt The enhanced text prompt with orientation/aspect ratio.
+	 * @return bool True if images are present in the prompt.
+	 */
+	protected function hasImagesInPrompt( array $messages ): bool {
+		foreach ( $messages as $message ) {
+			foreach ( $message->getParts() as $part ) {
+				$type = $part->getType();
+				if ( $type->isFile() ) {
+					$file = $part->getFile();
+					if ( $file && $file->isImage() ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Builds question parts array for image editing/refinement requests.
+	 *
+	 * Handles both text prompts and reference images for image editing.
+	 *
+	 * @param list<Message> $messages The SDK message objects.
+	 * @param string        $description The text description/instruction.
 	 * @return array Array of question parts with 'type' and content fields.
 	 */
-	protected function buildImageQuestionParts( array $messages, string $enhanced_prompt ): array {
+	protected function buildImageQuestionParts( array $messages, string $description ): array {
 		$question_parts = array();
 
-		// Add the enhanced prompt first.
+		// Add the text instruction first.
 		$question_parts[] = array(
 			'type' => 'text',
-			'text' => $enhanced_prompt,
+			'text' => $description,
 		);
 
-		// Check if there are any images in the prompt (for image-to-image generation or reference).
+		// Add any images in the prompt (for image editing/refinement).
 		foreach ( $messages as $message ) {
 			foreach ( $message->getParts() as $part ) {
 				$type = $part->getType();
@@ -394,14 +422,14 @@ class Ai_Studio_Image_Generation_Model extends AbstractApiBasedModel implements 
 	/**
 	 * Determines the chat source for image generation requests.
 	 *
-	 * Returns the chat_source identifier for image generation,
-	 * defaulting to wp_admin_image_generation.
+	 * Returns the chat_source identifier for image generation or editing.
 	 *
+	 * @param bool $is_editing Whether this is an image editing/refinement request.
 	 * @return string The chat_source identifier for the request.
 	 */
-	protected function determine_chat_source(): string {
-		// Image generation from WP Admin features always uses this source.
-		return 'wp_admin_image_generation';
+	protected function determine_chat_source( bool $is_editing = false ): string {
+		// Use different source for editing vs generation.
+		return $is_editing ? 'wp_admin_image_editing' : 'wp_admin_image_generation';
 	}
 
 	/**

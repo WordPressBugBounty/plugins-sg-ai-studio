@@ -117,7 +117,10 @@ class Ai_Studio_Model_Metadata_Directory implements ModelMetadataDirectoryInterf
 		$image_options = array(
 			new SupportedOption(
 				OptionEnum::inputModalities(),
-				array( array( ModalityEnum::text() ) )
+				array(
+					array( ModalityEnum::text() ),
+					array( ModalityEnum::text(), ModalityEnum::image() ),
+				)
 			),
 			new SupportedOption(
 				OptionEnum::outputModalities(),

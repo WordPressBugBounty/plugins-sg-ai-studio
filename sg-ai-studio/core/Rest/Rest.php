@@ -388,6 +388,26 @@ class Rest extends Rest_Controller_Base {
 				},
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/onboarding-shown',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_onboarding' ),
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_onboarding' ),
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+				),
+			)
+		);
 
 	}
 
@@ -643,6 +663,53 @@ class Rest extends Rest_Controller_Base {
 			array(
 				'connected' => $connected && ! empty( $client_id ) && ! empty( $client_key ),
 			)
+		);
+	}
+
+	/**
+	 * Get onboarding show status
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return \WP_REST_Response Response object on success.
+	 */
+	/**
+	 * Returns the plugin connection status for the WP 7.0+ Connectors page.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function get_onboarding() {
+		$onboarding = (bool) get_option( 'sg_ai_studio_onboarding_shown', false );
+
+		return rest_ensure_response(
+			array(
+				'shown' => (bool) $onboarding,
+			)
+		);
+	}
+
+	/**
+	 * Update onboarding show status
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function update_onboarding( $request ) {
+		$onboarding = (bool) $request->get_param( 'shown' );
+		// Update the option.
+		update_option( 'sg_ai_studio_onboarding_shown', $onboarding, 'yes' );
+
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
+			\sg_cachepress_purge_cache();
+			\wp_cache_flush();
+		} else {
+			\wp_cache_flush();
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'shown' => (bool) $onboarding,
+			),
+			200
 		);
 	}
 

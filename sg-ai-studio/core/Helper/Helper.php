@@ -775,17 +775,18 @@ class Helper {
 	/**
 	 * Send request to AI Studio generation API (v1)
 	 *
-	 * Handles both text and image generation requests with different endpoints
-	 * and request formats.
+	 * Handles text generation, image generation, and image editing requests
+	 * with different endpoints and request formats.
 	 *
 	 * @param array  $question_parts Array of question parts with 'type' and content (for text) or prompt string (for image).
 	 * @param string $api_key AI Studio API key.
 	 * @param array  $model_config Optional model configuration.
 	 * @param bool   $is_image_generation Whether this is an image generation request.
 	 * @param string $chat_source Optional source identifier for the chat request.
+	 * @param bool   $is_image_edit Whether this is an image editing/refinement request.
 	 * @return array|\WP_Error The API response or WP_Error.
 	 */
-	public static function send_to_text_generation_api( $question_parts, $api_key, $model_config = array(), $is_image_generation = false, $chat_source = '' ) {
+	public static function send_to_text_generation_api( $question_parts, $api_key, $model_config = array(), $is_image_generation = false, $chat_source = '', $is_image_edit = false ) {
 		if ( self::is_staging_environment() ) {
 			$hostname = 'https://api.staging.studio.siteground.ai';
 		} else {
@@ -793,7 +794,23 @@ class Helper {
 		}
 
 		// Set endpoint and build body based on generation type.
-		if ( $is_image_generation ) {
+		if ( $is_image_edit ) {
+			$url  = $hostname . '/api/v1/image/edit';
+			$body = array(
+				'question' => $question_parts,
+				'language' => 'en',
+			);
+
+			// Add model if provided in model config.
+			if ( ! empty( $model_config['model'] ) ) {
+				$body['model'] = $model_config['model'];
+			}
+
+			// Add chat_source to track request origin.
+			if ( ! empty( $chat_source ) ) {
+				$body['chat_source'] = $chat_source;
+			}
+		} elseif ( $is_image_generation ) {
 			$url  = $hostname . '/api/v1/image/generate';
 			$body = array(
 				'prompt' => is_array( $question_parts ) ? $question_parts['prompt'] : $question_parts,

@@ -18,6 +18,7 @@ use SG_AI_Studio\Activity_Log\Activity_Log;
 use SG_AI_Studio\Gutenberg\Gutenberg;
 use SG_AI_Studio\Ai_Provider\Ai_Provider_Hooks;
 use SG_AI_Studio\Install_Service\Install_Service;
+use SiteGround_i18n\i18n_Service;
 
 /**
  * Loader functions and main initialization class.
@@ -80,6 +81,13 @@ class Loader {
 	public $install_service;
 
 	/**
+	 * i18n Service instance
+	 *
+	 * @var i18n_Service
+	 */
+	public $i18n_service;
+
+	/**
 	 * Constructor - initialize plugin components
 	 */
 	public function __construct() {
@@ -90,6 +98,7 @@ class Loader {
 		$this->gutenberg       = new Gutenberg();
 		$this->helper          = new Helper();
 		$this->install_service = new Install_Service();
+		$this->i18n_service    = new i18n_Service( 'sg-ai-studio' );
 
 		$this->add_admin_hooks();
 		$this->add_activity_log_hooks();
@@ -100,6 +109,7 @@ class Loader {
 		$this->add_helper_hooks();
 		$this->add_ai_provider_hooks();
 		$this->add_install_service_hooks();
+		$this->add_i18n_hooks();
 	}
 
 	/**
@@ -265,5 +275,18 @@ class Loader {
 		if ( false === get_option( 'sg_ai_studio_version', false ) ) {
 			add_action( 'init', array( $this->install_service, 'install' ) );
 		}
+	}
+
+	/**
+	 * Add localization hooks.
+	 *
+	 * @since 1.1.8
+	 * @return void
+	 */
+	public function add_i18n_hooks() {
+		// Load the plugin textdomain.
+		add_action( 'after_setup_theme', array( $this->i18n_service, 'load_textdomain' ), 9999 );
+		// Generate JSON translations.
+		add_action( 'upgrader_process_complete', array( $this->i18n_service, 'update_json_translations' ), 10, 2 );
 	}
 }
