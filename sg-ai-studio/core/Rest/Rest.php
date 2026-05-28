@@ -29,6 +29,7 @@ use SG_AI_Studio\Rest\Activity_Log;
 use SG_AI_Studio\Rest\Core;
 use SG_AI_Studio\Rest\Gutenberg;
 use SG_AI_Studio\Rest\Post_Types;
+use SG_AI_Studio\Rest\Menus;
 
 /**
  * Handles custom REST API endpoints.
@@ -183,6 +184,13 @@ class Rest extends Rest_Controller_Base {
 	private $post_types;
 
 	/**
+	 * Menus API instance
+	 *
+	 * @var Menus
+	 */
+	private $menus;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -201,6 +209,7 @@ class Rest extends Rest_Controller_Base {
 		$this->core          = new Core();
 		$this->gutenberg     = new Gutenberg();
 		$this->post_types    = new Post_Types();
+		$this->menus         = new Menus();
 
 		// Only initialize WooCommerce endpoints if WooCommerce is active.
 		if ( function_exists( 'is_plugin_active' ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
@@ -264,6 +273,9 @@ class Rest extends Rest_Controller_Base {
 
 		// Register post types endpoints.
 		$this->post_types->register_rest_routes();
+
+		// Register menu management endpoints.
+		$this->menus->register_rest_routes();
 
 		// Register WooCommerce endpoints if WooCommerce is active.
 		if ( class_exists( 'WooCommerce' ) ) {

@@ -131,9 +131,6 @@ class Loader {
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		// Add floating chat widget to admin footer.
 		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ) );
-
-		add_action( 'rest_api_init', function()  { remove_filter('rest_pre_serve_request', 'rest_send_cors_headers'); }, 15 );
-
 	}
 
 	public function add_activity_log_hooks() {
