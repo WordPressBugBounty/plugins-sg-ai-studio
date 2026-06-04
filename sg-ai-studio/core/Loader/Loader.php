@@ -130,7 +130,7 @@ class Loader {
 		// Register settings.
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		// Add floating chat widget to admin footer.
-		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ) );
+		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ), 9 );
 	}
 
 	public function add_activity_log_hooks() {
@@ -178,6 +178,11 @@ class Loader {
 	 * @return void
 	 */
 	public function add_gutenberg_hooks() {
+		// Skip Gutenberg integration if disabled.
+		if ( ! get_option( 'sg_ai_studio_gutenberg_actions', false ) ) {
+			return;
+		}
+
 		// Enqueue Gutenberg editor assets.
 		add_action( 'enqueue_block_editor_assets', array( $this->gutenberg, 'enqueue_editor_assets' ) );
 	}

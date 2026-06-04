@@ -616,25 +616,27 @@ class Posts extends Rest_Controller_Base {
 		// Get the post.
 		$post = get_post( $post_id );
 
-		// Format the response.
-		$response = $this->prepare_post_for_response( $post );
-
 		// Log the activity.
 		/* translators: %1$s is the post title, %2$d is the post ID. */
 		Activity_Log_Helper::add_log_entry( 'Posts', sprintf( __( 'Post Created: %1$s (ID: %2$d)', 'sg-ai-studio' ), $post->post_title, $post_id ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'  => true,
+				'id'       => $post->ID,
+				'title'    => $post->post_title,
+				'status'   => $post->post_status,
+				'link'     => get_permalink( $post->ID ),
+				'modified' => mysql_to_rfc3339( $post->post_modified ),
 			),
 			201
 		);
@@ -702,25 +704,27 @@ class Posts extends Rest_Controller_Base {
 		// Get the updated post.
 		$post = get_post( $post_id );
 
-		// Format the response.
-		$response = $this->prepare_post_for_response( $post );
-
 		// Log the activity.
 		/* translators: %1$s is the post title, %2$d is the post ID. */
 		Activity_Log_Helper::add_log_entry( 'Posts', sprintf( __( 'Post Updated: %1$s (ID: %2$d)', 'sg-ai-studio' ), $post->post_title, $post_id ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'  => true,
+				'id'       => $post->ID,
+				'title'    => $post->post_title,
+				'status'   => $post->post_status,
+				'link'     => get_permalink( $post->ID ),
+				'modified' => mysql_to_rfc3339( $post->post_modified ),
 			),
 			200
 		);
@@ -758,9 +762,6 @@ class Posts extends Rest_Controller_Base {
 			);
 		}
 
-		// Get the post before deleting it.
-		$previous = $this->prepare_post_for_response( $post );
-
 		// Delete the post.
 		$result = wp_delete_post( $post_id, $force );
 
@@ -784,32 +785,22 @@ class Posts extends Rest_Controller_Base {
 		}
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
-		if ( $force ) {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The post has been permanently deleted.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		} else {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The post has been moved to the trash.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		}
+		// Return lean response for delete operation.
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'id'      => $post_id,
+				'status'  => $force ? 'deleted' : 'trashed',
+			),
+			200
+		);
 	}
 
 	/**
@@ -960,7 +951,7 @@ class Posts extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1020,7 +1011,7 @@ class Posts extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1081,7 +1072,7 @@ class Posts extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1176,25 +1167,14 @@ class Posts extends Rest_Controller_Base {
 		$data = array(
 			'id'             => $post->ID,
 			'date'           => mysql_to_rfc3339( $post->post_date ),
-			'date_gmt'       => mysql_to_rfc3339( $post->post_date_gmt ),
 			'modified'       => mysql_to_rfc3339( $post->post_modified ),
-			'modified_gmt'   => mysql_to_rfc3339( $post->post_modified_gmt ),
 			'slug'           => $post->post_name,
 			'status'         => $post->post_status,
 			'type'           => $post->post_type,
 			'link'           => get_permalink( $post->ID ),
-			'title'          => array(
-				'raw'      => $post->post_title,
-				'rendered' => get_the_title( $post->ID ),
-			),
-			'content'        => array(
-				'raw'      => $post->post_content,
-				'rendered' => apply_filters( 'the_content', $post->post_content ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
-			'excerpt'        => array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => apply_filters( 'the_excerpt', $post->post_excerpt ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
+			'title'          => $post->post_title,
+			'content'        => $post->post_content,
+			'excerpt'        => $post->post_excerpt,
 			'author'         => (int) $post->post_author,
 			'featured_media' => (int) $featured_media_id,
 			'comment_status' => $post->comment_status,

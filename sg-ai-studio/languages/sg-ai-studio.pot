@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AI Agent by SiteGround\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-19 16:04+0000\n"
+"POT-Creation-Date: 2026-06-03 13:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -13,10 +13,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.4; wp-7.0-RC4; php-8.4.16\n"
+"X-Loco-Version: 2.8.4; wp-7.0-RC4; php-8.2.30\n"
 "X-Domain: sg-ai-studio"
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:85
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:89
 msgid ""
 " and connect the plugin via a unique token. Websites hosted on SiteGround "
 "platform will be connected automatically."
@@ -43,13 +43,13 @@ msgstr ""
 msgid "%d Star"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:152
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:162
 msgid ""
 "**Hi! I am your WordPress AI Assistant. How can I help you manage your site "
 "today?**"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:145
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:155
 msgid ""
 "**Hi! I am your WordPress AI Assistant. How can I help you manage your store "
 "today?**"
@@ -71,7 +71,7 @@ msgstr ""
 msgid "Activity Log"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:106
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:113
 msgid "Add Token"
 msgstr ""
 
@@ -81,8 +81,8 @@ msgid "Add tokens"
 msgstr ""
 
 #. Page title.
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:262
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:263
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:272
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:273
 msgid "AI Agent"
 msgstr ""
 
@@ -91,12 +91,24 @@ msgstr ""
 msgid "AI Agent by SiteGround"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:79
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:83
 msgid "AI Agent Plugin Activation"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:78
 msgid "AI Agent Settings"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:80
+msgid "AI Editing in Gutenberg Blocks"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:102
+msgid "AI Editing in Gutenberg Blocks is disabled"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:101
+msgid "AI Editing in Gutenberg Blocks is enabled"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:64
@@ -133,8 +145,8 @@ msgid ""
 "connection and credentials remain intact."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:534
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:586
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:554
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:606
 msgid "AI Studio is not connected. Please connect first."
 msgstr ""
 
@@ -146,7 +158,7 @@ msgstr ""
 msgid "AI Studio Provider Disconnected"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:555
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:575
 msgid ""
 "AI Studio provider disconnected successfully. The plugin remains connected."
 msgstr ""
@@ -155,7 +167,7 @@ msgstr ""
 msgid "AI Studio Provider Reconnected"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:607
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:627
 msgid "AI Studio provider reconnected successfully."
 msgstr ""
 
@@ -175,14 +187,14 @@ msgstr ""
 msgid "All Reviews"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:237
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:247
 msgid ""
 "Apply a 20% discount to all products in category (keeping Regular price "
 "unchanged)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:103
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:115
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:110
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:122
 msgid "Are you sure you want to proceed?"
 msgstr ""
 
@@ -190,7 +202,7 @@ msgstr ""
 msgid "Ask me anything WordPress related and I'll help."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:208
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:218
 msgid "Audit & Optimize"
 msgstr ""
 
@@ -253,7 +265,7 @@ msgstr ""
 msgid "Batch Media Update: %1$d updated, %2$d errors"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:213
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:223
 msgid "Bulk Actions"
 msgstr ""
 
@@ -265,7 +277,7 @@ msgstr ""
 msgid "Cache Cleared: All caches have been cleared"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:110
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:117
 msgid "cancel"
 msgstr ""
 
@@ -299,7 +311,7 @@ msgstr ""
 msgid "Category Updated: %1$s (ID: %2$d)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:233
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:243
 msgid "Check if my site, plugins and themes are up-to-date"
 msgstr ""
 
@@ -373,19 +385,19 @@ msgstr ""
 msgid "Comments are closed for this post."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:105
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:112
 msgid "Confirm"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:88
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:92
 msgid "Connect"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:80
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:84
 msgid "Connected"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:290
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:310
 msgid "Connected status has been updated successfully."
 msgstr ""
 
@@ -439,23 +451,23 @@ msgstr ""
 msgid "Coupon Updated: %1$s (Coupon ID: %2$d)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:203
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:213
 msgid "Create & Generate"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:227
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:237
 msgid "Create 10 blog post title ideas"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:239
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:249
 msgid "Create 3 new parent post categories with 5 sub-categories for each"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:236
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:246
 msgid "Create 5 blog post drafts at once"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:225
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:235
 msgid "Create a new page from scratch (with Gutenberg building blocks)"
 msgstr ""
 
@@ -467,7 +479,7 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:238
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:248
 msgid "Delete all spam comments"
 msgstr ""
 
@@ -479,19 +491,19 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:87
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:91
 msgid "Disconnect"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:459
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:479
 msgid "Disconnect completed with some errors during local cleanup."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:638
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:650
 msgid "Disconnect completed with some errors."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:114
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:121
 msgid "Disconnect from AI Studio"
 msgstr ""
 
@@ -531,12 +543,12 @@ msgid ""
 "content or settings. Tap Learn more for details before enabling."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:107
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:114
 msgid ""
 "Enable the connection to AI Studio by pasting your secret connection token."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Loader/Loader.php:210
+#: /chroot/plugins/sg-ai-studio/core/Loader/Loader.php:212
 msgid "Every 29 Days"
 msgstr ""
 
@@ -553,19 +565,27 @@ msgstr ""
 msgid "Failed to connect to dynamic-keys API."
 msgstr ""
 
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1387
+msgid "Failed to delete menu item."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:465
+msgid "Failed to delete navigation."
+msgstr ""
+
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:401
 msgid "Failed to delete the image."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:563
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:583
 msgid "Failed to disconnect provider."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:810
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:822
 msgid "Failed to fetch ACL data."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:752
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:764
 msgid "Failed to fetch usage data."
 msgstr ""
 
@@ -576,13 +596,21 @@ msgstr ""
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:433
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:533
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:611
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:457
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:723
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:781
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:469
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:735
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:793
 msgid "Failed to generate authentication token."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:299
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:389
+msgid "Failed to retrieve created menu."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:337
+msgid "Failed to retrieve created navigation."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:319
 msgid "Failed to update connected status."
 msgstr ""
 
@@ -590,11 +618,11 @@ msgstr ""
 msgid "Failed to update domain."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:222
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:242
 msgid "Failed to update powermode setting."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:372
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:392
 msgid "Failed to update provider connected status."
 msgstr ""
 
@@ -656,15 +684,27 @@ msgid ""
 "cannot be uploaded."
 msgstr ""
 
+#. %1$s is the menu name, %2$d is the menu ID.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:345
+#, php-format
+msgid "FSE Navigation Created: %1$s (ID: %2$d)"
+msgstr ""
+
+#. %1$s is the menu name, %2$d is the menu ID.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:473
+#, php-format
+msgid "FSE Navigation Deleted: %1$s (ID: %2$d)"
+msgstr ""
+
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:29
 msgid "Generate content & images"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:226
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:236
 msgid "Generate product descriptions (for WooCommerce)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:221
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:231
 msgid "Generate sales report for last week including best selling products"
 msgstr ""
 
@@ -692,7 +732,7 @@ msgstr ""
 msgid "Go to previous page"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:117
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:124
 msgid "Groups"
 msgstr ""
 
@@ -729,7 +769,7 @@ msgstr ""
 msgid "Install, update & audit plugins"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Image_Generation_Model.php:67
+#: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Image_Generation_Model.php:73
 #: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Text_Generation_Model.php:80
 msgid "Insufficient AI tokens. Please upgrade your plan to continue."
 msgstr ""
@@ -742,6 +782,10 @@ msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/core/Helper/Helper.php:640
 msgid "Invalid authorization header format."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:968
+msgid "Invalid block type."
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/core/Rest/Categories.php:350
@@ -779,6 +823,35 @@ msgstr ""
 #: /chroot/plugins/sg-ai-studio/core/Rest/Media.php:1063
 #: /chroot/plugins/sg-ai-studio/core/Rest/Media.php:1239
 msgid "Invalid media ID."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:498
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:579
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1095
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1827
+msgid "Invalid menu ID."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1371
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1626
+msgid "Invalid menu item ID."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1802
+msgid "Invalid menu location."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:450
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:561
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1008
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1272
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1456
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1815
+msgid "Invalid navigation ID."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:863
+msgid "Invalid object_id."
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/core/Rest/Orders.php:1302
@@ -822,7 +895,7 @@ msgstr ""
 msgid "Invalid product ID."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:426
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:438
 msgid "Invalid security token"
 msgstr ""
 
@@ -842,6 +915,10 @@ msgstr ""
 #: /chroot/plugins/sg-ai-studio/core/Rest/Auth.php:117
 #: /chroot/plugins/sg-ai-studio/core/Rest/Auth.php:130
 msgid "Invalid token."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1133
+msgid "Invalid type. Must be \"custom\" or \"post_type\"."
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:670
@@ -881,16 +958,16 @@ msgid "Learn more"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:66
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:86
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:90
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:94
 msgid "Learn More."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:100
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:107
 msgid "Leave Anyway"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:102
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:109
 msgid ""
 "Leaving now will stop the response from finishing. You may lose the rest of "
 "the answer."
@@ -934,16 +1011,110 @@ msgstr ""
 msgid "Media Uploaded: %1$s (Media ID: %2$d)"
 msgstr ""
 
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1859
+msgid "Menu assigned to location successfully."
+msgstr ""
+
+#. %1$s is the menu name, %2$s is the location.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1846
+#, php-format
+msgid "Menu Assigned: %1$s to location %2$s"
+msgstr ""
+
+#. %1$s is the menu name, %2$d is the menu ID.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:397
+#, php-format
+msgid "Menu Created: %1$s (ID: %2$d)"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:534
+msgid "Menu deleted successfully."
+msgstr ""
+
+#. %1$s is the menu name, %2$d is the menu ID.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:521
+#, php-format
+msgid "Menu Deleted: %1$s (ID: %2$d)"
+msgstr ""
+
+#. %1$s is the item title, %2$s is the menu name.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1186
+#, php-format
+msgid "Menu Item Added: %1$s to menu %2$s"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1352
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1408
+msgid "Menu item deleted successfully."
+msgstr ""
+
+#. %s is the item title.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1395
+#, php-format
+msgid "Menu Item Deleted: %s"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1641
+msgid "Menu item is not associated with any menu."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1307
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1522
+msgid "Menu item not found."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1606
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1733
+msgid "Menu item updated successfully."
+msgstr ""
+
+#. %s is the item title.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1720
+#, php-format
+msgid "Menu Item Updated: %s"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:303
+msgid "Menu name is required."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1260
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1444
+msgid "menu_id is required for FSE themes."
+msgstr ""
+
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:8
 msgid "Minimize"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:198
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:208
 msgid "Most Popular"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Provider.php:89
 msgid "Multi-model AI service for text, image, translation, research & more."
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:486
+msgid "Navigation deleted successfully."
+msgstr ""
+
+#. %1$s is the item title, %2$s is the navigation name.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1058
+#, php-format
+msgid "Navigation Item Added: %1$s to %2$s"
+msgstr ""
+
+#. %s is the item title.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1339
+#, php-format
+msgid "Navigation Item Deleted: %s"
+msgstr ""
+
+#. %s is the item title.
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1593
+#, php-format
+msgid "Navigation Item Updated: %s"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:6
@@ -972,12 +1143,18 @@ msgstr ""
 msgid "Not allowed"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:81
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:85
 msgid "Not Connected"
 msgstr ""
 
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:855
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1120
+msgid "object_id and object are required for post_type items."
+msgstr ""
+
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:68
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:93
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:82
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:97
 msgid "Off"
 msgstr ""
 
@@ -986,7 +1163,8 @@ msgid "Older"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:67
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:92
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:81
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:96
 msgid "On"
 msgstr ""
 
@@ -1196,15 +1374,15 @@ msgstr ""
 msgid "Post Updated: %1$s (ID: %2$d)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:91
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:95
 msgid "Power Mode"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:98
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:105
 msgid "Power Mode is disabled"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:97
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:104
 msgid "Power Mode is enabled"
 msgstr ""
 
@@ -1226,6 +1404,8 @@ msgstr ""
 #: /chroot/plugins/sg-ai-studio/core/Rest/Coupons.php:521
 #: /chroot/plugins/sg-ai-studio/core/Rest/Coupons.php:578
 #: /chroot/plugins/sg-ai-studio/core/Rest/Coupons.php:963
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:434
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1231
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:558
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:657
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:770
@@ -1282,7 +1462,7 @@ msgstr ""
 msgid "Product Updated: %1$s (Product ID: %2$d)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:439
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:451
 msgid "Prompt cannot be empty"
 msgstr ""
 
@@ -1291,7 +1471,7 @@ msgstr ""
 msgid "Prompt is required."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:363
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:383
 msgid "Provider connected status has been updated successfully."
 msgstr ""
 
@@ -1299,7 +1479,7 @@ msgstr ""
 msgid "Published"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:101
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:108
 msgid "Response still in progress"
 msgstr ""
 
@@ -1311,11 +1491,11 @@ msgstr ""
 msgid "Run bulk actions with one prompt"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:232
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:242
 msgid "Run full SEO audit of my site"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:111
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:118
 msgid "save"
 msgstr ""
 
@@ -1323,19 +1503,19 @@ msgstr ""
 msgid "Search..."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:108
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:115
 msgid "Secret Connection Token"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:231
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:241
 msgid "Security - Check site security status (via Security Optimizer)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:116
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:123
 msgid "Select or search groups"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:118
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:125
 msgid "Selected Groups"
 msgstr ""
 
@@ -1377,27 +1557,28 @@ msgstr ""
 msgid "SiteGround AI Studio"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:95
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:99
 msgid "SiteGround AI Studio Connector is disabled"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:94
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:98
 msgid "SiteGround AI Studio Connector is enabled"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:84
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:88
 msgid "SiteGround AI Studio service"
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:69
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:104
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:112
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:113
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:111
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:119
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:120
 msgid "Something went wrong. Please try again later."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:96
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:99
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:100
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:103
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:106
 msgid "Something went wrong. Please try again."
 msgstr ""
 
@@ -1405,13 +1586,13 @@ msgstr ""
 msgid "Sorry, you are not allowed to access activity logs."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:230
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:240
 msgid ""
 "Speed - Optimize site performance (caching, images, CSS via SiteGround Speed "
 "Optimizer)"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:220
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:230
 msgid "Speed up my site automatically (with SiteGround Speed Optimizer)"
 msgstr ""
 
@@ -1423,12 +1604,12 @@ msgstr ""
 msgid "Start chatting to build your history!"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:443
-#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:630
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:463
+#: /chroot/plugins/sg-ai-studio/core/Rest/Rest.php:642
 msgid "Successfully disconnected and cleaned up all SG AI Studio data."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:242
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:252
 msgid "Suggested actions"
 msgstr ""
 
@@ -1677,14 +1858,14 @@ msgid ""
 "WordPress admin, enabled by the "
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:83
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:87
 msgid "To activate the plugin, you need to sign up for "
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:89
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:93
 msgid ""
 "To protect your website from accidental or harmful changes, the AI Agent for "
-"WordPress includes a built-in safety option called \"Power Mode.\" Power "
+"WordPress includes a built-in safety option called \\\"Power Mode.\\\" Power "
 "Mode is disabled by default to ensure that high-impact actions cannot be "
 "executed accidentally. Actions that require you to enable Power Mode include "
 "deletions (users, posts, pages, files, etc.), bulk operations, global "
@@ -1695,7 +1876,7 @@ msgstr ""
 msgid "Today"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:109
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:116
 msgid "Token can not be empty."
 msgstr ""
 
@@ -1720,6 +1901,10 @@ msgstr ""
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:40
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:42
 msgid "Upgrade to Plus"
+msgstr ""
+
+#: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:848
+msgid "URL is required for custom navigation links."
 msgstr ""
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:63
@@ -1760,6 +1945,16 @@ msgstr ""
 msgid "Username already exists."
 msgstr ""
 
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:79
+msgid ""
+"When this option is on, you will see the AI Agent listed in the editing "
+"options of some of the standard blocks of the Gutenberg Block Editor. This "
+"allows you to easily use AI for creating and editing text and images in your "
+"posts. If the option is turned off, you will not see the AI editing option "
+"in the blocks, but you can still use the general AI Agent chat and the "
+"custom AI Content Generator block."
+msgstr ""
+
 #. %1$s is the WooCommerce category name, %2$d is the WooCommerce category ID.
 #: /chroot/plugins/sg-ai-studio/core/Rest/WooCommerce_Categories.php:367
 #, php-format
@@ -1786,11 +1981,11 @@ msgstr ""
 msgid "WordPress core updated successfully."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:224
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:234
 msgid "Write a blog post with images and SEO"
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:219
+#: /chroot/plugins/sg-ai-studio/core/Admin/Admin.php:229
 msgid "Write a SEO-friendly blog post with AI images and headings"
 msgstr ""
 
@@ -1811,10 +2006,10 @@ msgstr ""
 msgid "You've run out of tokens."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:82
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:86
 msgid "Your plugin is active and connected to SiteGround AI Studio."
 msgstr ""
 
-#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:196
+#: /chroot/plugins/sg-ai-studio/core/Rest/Settings_Page.php:216
 msgid "Your site is not connected."
 msgstr ""

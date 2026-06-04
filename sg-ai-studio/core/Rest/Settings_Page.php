@@ -137,6 +137,26 @@ class Settings_Page extends Rest_Controller_Base {
 				'description'         => 'Reconnect AI Studio as a provider to WP Connectors.',
 			)
 		);
+
+		// Register Gutenberg actions toggle endpoint.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->base . '/gutenberg-actions',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_gutenberg_actions_status' ),
+					'permission_callback' => array( $this, 'ai_studio_settings_permissions_check' ),
+					'description'         => 'Retrieves the current Gutenberg actions status.',
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_gutenberg_actions_status' ),
+					'permission_callback' => array( $this, 'ai_studio_settings_permissions_check' ),
+					'description'         => 'Updates the Gutenberg actions status (enable/disable).',
+				),
+			)
+		);
 	}
 
 	/**
@@ -608,6 +628,52 @@ class Settings_Page extends Rest_Controller_Base {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Get Gutenberg actions status
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function get_gutenberg_actions_status( $request ) {
+		$enabled = get_option( 'sg_ai_studio_gutenberg_actions', false );
+
+		return new WP_REST_Response(
+			array(
+				'enabled' => (bool) $enabled,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update Gutenberg actions status
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function update_gutenberg_actions_status( $request ) {
+		$enabled = (bool) $request->get_param( 'enabled' );
+
+		// Update the option.
+		update_option( 'sg_ai_studio_gutenberg_actions', (int) $enabled );
+
+		return new WP_REST_Response(
+			array(
+				'enabled' => $enabled,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Check if Gutenberg actions are enabled
+	 *
+	 * @return bool True if Gutenberg actions are enabled, false otherwise.
+	 */
+	public static function is_gutenberg_actions_enabled() {
+		return (bool) get_option( 'sg_ai_studio_gutenberg_actions', false );
 	}
 
 }

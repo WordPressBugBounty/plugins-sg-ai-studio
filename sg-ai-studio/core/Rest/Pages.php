@@ -637,25 +637,27 @@ class Pages extends Rest_Controller_Base {
 		// Get the page.
 		$page = get_post( $page_id );
 
-		// Format the response.
-		$response = $this->prepare_page_for_response( $page );
-
 		// Log the activity.
 		/* translators: %1$s is the page title, %2$d is the page ID. */
 		Activity_Log_Helper::add_log_entry( 'Pages', sprintf( __( 'Page Created: %1$s (ID: %2$d)', 'sg-ai-studio' ), $page->post_title, $page_id ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'  => true,
+				'id'       => $page->ID,
+				'title'    => $page->post_title,
+				'status'   => $page->post_status,
+				'link'     => get_permalink( $page->ID ),
+				'modified' => mysql_to_rfc3339( $page->post_modified ),
 			),
 			201
 		);
@@ -719,25 +721,27 @@ class Pages extends Rest_Controller_Base {
 		// Get the updated page.
 		$page = get_post( $page_id );
 
-		// Format the response.
-		$response = $this->prepare_page_for_response( $page );
-
 		// Log the activity.
 		/* translators: %1$s is the page title, %2$d is the page ID. */
 		Activity_Log_Helper::add_log_entry( 'Pages', sprintf( __( 'Page Updated: %1$s (ID: %2$d)', 'sg-ai-studio' ), $page->post_title, $page_id ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'  => true,
+				'id'       => $page->ID,
+				'title'    => $page->post_title,
+				'status'   => $page->post_status,
+				'link'     => get_permalink( $page->ID ),
+				'modified' => mysql_to_rfc3339( $page->post_modified ),
 			),
 			200
 		);
@@ -775,9 +779,6 @@ class Pages extends Rest_Controller_Base {
 			);
 		}
 
-		// Get the page before deleting it.
-		$previous = $this->prepare_page_for_response( $page );
-
 		// Delete the page.
 		$result = wp_delete_post( $page_id, $force );
 
@@ -792,32 +793,22 @@ class Pages extends Rest_Controller_Base {
 		}
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
-		if ( $force ) {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The page has been permanently deleted.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		} else {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The page has been moved to the trash.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		}
+		// Return lean response for delete operation.
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'id'      => $page_id,
+				'status'  => $force ? 'deleted' : 'trashed',
+			),
+			200
+		);
 	}
 
 	/**
@@ -963,7 +954,7 @@ class Pages extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1023,7 +1014,7 @@ class Pages extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1084,7 +1075,7 @@ class Pages extends Rest_Controller_Base {
 		$success = empty( $errors );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1179,25 +1170,14 @@ class Pages extends Rest_Controller_Base {
 		$data = array(
 			'id'             => $page->ID,
 			'date'           => mysql_to_rfc3339( $page->post_date ),
-			'date_gmt'       => mysql_to_rfc3339( $page->post_date_gmt ),
 			'modified'       => mysql_to_rfc3339( $page->post_modified ),
-			'modified_gmt'   => mysql_to_rfc3339( $page->post_modified_gmt ),
 			'slug'           => $page->post_name,
 			'status'         => $page->post_status,
 			'type'           => $page->post_type,
 			'link'           => get_permalink( $page->ID ),
-			'title'          => array(
-				'raw'      => $page->post_title,
-				'rendered' => get_the_title( $page->ID ),
-			),
-			'content'        => array(
-				'raw'      => $page->post_content,
-				'rendered' => apply_filters( 'the_content', $page->post_content ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
-			'excerpt'        => array(
-				'raw'      => $page->post_excerpt,
-				'rendered' => apply_filters( 'the_excerpt', $page->post_excerpt ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
+			'title'          => $page->post_title,
+			'content'        => $page->post_content,
+			'excerpt'        => $page->post_excerpt,
 			'author'         => (int) $page->post_author,
 			'featured_media' => (int) $featured_media_id,
 			'parent'         => (int) $page->post_parent,

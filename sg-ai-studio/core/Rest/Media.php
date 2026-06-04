@@ -923,21 +923,23 @@ class Media extends Rest_Controller_Base {
 		/* translators: %1$s is the media title, %2$d is the media ID. */
 		Activity_Log_Helper::add_log_entry( 'Media', sprintf( __( 'Media Uploaded: %1$s (Media ID: %2$d)', 'sg-ai-studio' ), $attachment->post_title, $attachment_id ) );
 
-		// Format the response.
-		$response = $this->prepare_media_for_response( $attachment );
-
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'    => true,
+				'id'         => $attachment->ID,
+				'title'      => $attachment->post_title,
+				'link'       => get_permalink( $attachment->ID ),
+				'source_url' => wp_get_attachment_url( $attachment->ID ),
+				'modified'   => mysql_to_rfc3339( $attachment->post_modified ),
 			),
 			201
 		);
@@ -1016,21 +1018,23 @@ class Media extends Rest_Controller_Base {
 		/* translators: %1$s is the media title, %2$d is the media ID. */
 		Activity_Log_Helper::add_log_entry( 'Media', sprintf( __( 'Media Updated: %1$s (Media ID: %2$d)', 'sg-ai-studio' ), $media->post_title, $media_id ) );
 
-		// Format the response.
-		$response = $this->prepare_media_for_response( $media );
-
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'    => true,
+				'id'         => $media->ID,
+				'title'      => $media->post_title,
+				'link'       => get_permalink( $media->ID ),
+				'source_url' => wp_get_attachment_url( $media->ID ),
+				'modified'   => mysql_to_rfc3339( $media->post_modified ),
 			),
 			200
 		);
@@ -1066,9 +1070,6 @@ class Media extends Rest_Controller_Base {
 			);
 		}
 
-		// Get the media before deleting it.
-		$previous = $this->prepare_media_for_response( $media );
-
 		// Delete the media.
 		$result = wp_delete_attachment( $media_id, $force );
 
@@ -1083,7 +1084,7 @@ class Media extends Rest_Controller_Base {
 		}
 
 		// Log the activity.
-		$media_title = $previous['title']['raw'] ? $previous['title']['raw'] : "Media ID: {$media_id}";
+		$media_title = $media->post_title ? $media->post_title : "Media ID: {$media_id}";
 		if ( $force ) {
 			/* translators: %1$s is the media title, %2$d is the media ID. */
 			Activity_Log_Helper::add_log_entry( 'Media', sprintf( __( 'Media Permanently Deleted: %1$s (Media ID: %2$d)', 'sg-ai-studio' ), $media_title, $media_id ) );
@@ -1093,32 +1094,22 @@ class Media extends Rest_Controller_Base {
 		}
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
-		if ( $force ) {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The media item has been permanently deleted.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		} else {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The media item has been moved to the trash.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		}
+		// Return lean response for delete operation.
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'id'      => $media_id,
+				'status'  => $force ? 'deleted' : 'trashed',
+			),
+			200
+		);
 	}
 
 	/**
@@ -1301,7 +1292,7 @@ class Media extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Media', sprintf( __( 'Batch Media Update: %1$d updated, %2$d errors', 'sg-ai-studio' ), $updated_count, $error_count ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1371,7 +1362,7 @@ class Media extends Rest_Controller_Base {
 		}
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
@@ -1418,25 +1409,14 @@ class Media extends Rest_Controller_Base {
 		$data = array(
 			'id'            => $media->ID,
 			'date'          => mysql_to_rfc3339( $media->post_date ),
-			'date_gmt'      => mysql_to_rfc3339( $media->post_date_gmt ),
 			'modified'      => mysql_to_rfc3339( $media->post_modified ),
-			'modified_gmt'  => mysql_to_rfc3339( $media->post_modified_gmt ),
 			'slug'          => $media->post_name,
 			'status'        => $media->post_status,
 			'type'          => $media->post_type,
 			'link'          => get_permalink( $media->ID ),
-			'title'         => array(
-				'raw'      => $media->post_title,
-				'rendered' => get_the_title( $media->ID ),
-			),
-			'caption'       => array(
-				'raw'      => $media->post_excerpt,
-				'rendered' => apply_filters( 'the_excerpt', $media->post_excerpt ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
-			'description'   => array(
-				'raw'      => $media->post_content,
-				'rendered' => apply_filters( 'the_content', $media->post_content ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-			),
+			'title'         => $media->post_title,
+			'caption'       => $media->post_excerpt,
+			'description'   => $media->post_content,
 			'alt_text'      => $alt_text,
 			'author'        => (int) $media->post_author,
 			'post'          => (int) $media->post_parent,

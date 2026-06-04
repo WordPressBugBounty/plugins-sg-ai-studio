@@ -827,20 +827,23 @@ class Products extends Rest_Controller_Base {
 		/* translators: %1$s is the product name, %2$d is the product ID. */
 		Activity_Log_Helper::add_log_entry( 'Products', sprintf( __( 'Product Created: %1$s (Product ID: %2$d)', 'sg-ai-studio' ), $product->get_name(), $product->get_id() ) );
 
-		$response = $this->prepare_product_for_response( $product );
-
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'       => true,
+				'id'            => $product->get_id(),
+				'name'          => $product->get_name(),
+				'status'        => $product->get_status(),
+				'permalink'     => $product->get_permalink(),
+				'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
 			),
 			201
 		);
@@ -883,20 +886,23 @@ class Products extends Rest_Controller_Base {
 		/* translators: %1$s is the product name, %2$d is the product ID. */
 		Activity_Log_Helper::add_log_entry( 'Products', sprintf( __( 'Product Updated: %1$s (Product ID: %2$d)', 'sg-ai-studio' ), $product->get_name(), $product->get_id() ) );
 
-		$response = $this->prepare_product_for_response( $product );
-
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
+		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => $response,
+				'success'       => true,
+				'id'            => $product->get_id(),
+				'name'          => $product->get_name(),
+				'status'        => $product->get_status(),
+				'permalink'     => $product->get_permalink(),
+				'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
 			),
 			200
 		);
@@ -933,7 +939,7 @@ class Products extends Rest_Controller_Base {
 			);
 		}
 
-		$previous = $this->prepare_product_for_response( $product );
+		$product_name = $product->get_name();
 
 		if ( $force ) {
 			$result = $product->delete( true );
@@ -953,7 +959,6 @@ class Products extends Rest_Controller_Base {
 		}
 
 		// Log the activity.
-		$product_name = $previous['name'];
 		if ( $force ) {
 			/* translators: %1$s is the product name, %2$d is the product ID. */
 			Activity_Log_Helper::add_log_entry( 'Products', sprintf( __( 'Product Permanently Deleted: %1$s (Product ID: %2$d)', 'sg-ai-studio' ), $product_name, $product_id ) );
@@ -961,33 +966,24 @@ class Products extends Rest_Controller_Base {
 			/* translators: %1$s is the product name, %2$d is the product ID. */
 			Activity_Log_Helper::add_log_entry( 'Products', sprintf( __( 'Product Moved to Trash: %1$s (Product ID: %2$d)', 'sg-ai-studio' ), $product_name, $product_id ) );
 		}
+
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
 			\sg_cachepress_purge_cache();
 			\wp_cache_flush();
 		} else {
 			\wp_cache_flush();
 		}
 
-		if ( $force ) {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The product has been permanently deleted.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		} else {
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => __( 'The product has been moved to the trash.', 'sg-ai-studio' ),
-					'data'    => $previous,
-				),
-				200
-			);
-		}
+		// Return lean response for delete operation.
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'id'      => $product_id,
+				'status'  => $force ? 'deleted' : 'trashed',
+			),
+			200
+		);
 	}
 
 	/**
@@ -1466,10 +1462,6 @@ class Products extends Rest_Controller_Base {
 				412
 			);
 		}
-
-		// OBSERVABILITY: Log request for verification.
-		error_log( 'Batch request - Method: ' . $request->get_method() );
-		error_log( 'Batch request - Body: ' . wp_json_encode( $request->get_json_params() ) );
 
 		$body = $request->get_json_params();
 

@@ -82,7 +82,7 @@ class Helper {
 			'method'      => 'POST',
 			'timeout'     => 90000000,
 			'redirection' => 45,
-			'sslverify'   => false,
+			'sslverify'   => true,
 		);
 
 		return wp_remote_post( $url, $args );
@@ -612,6 +612,9 @@ class Helper {
 		$attachment_data = wp_generate_attachment_metadata( $attachment_id, $file_path );
 		wp_update_attachment_metadata( $attachment_id, $attachment_data );
 
+		// Add custom meta to identify AI-generated images from Gutenberg.
+		update_post_meta( $attachment_id, '_sg_ai_studio_generated', true );
+
 		return $attachment_id;
 	}
 
@@ -857,7 +860,7 @@ class Helper {
 			'method'      => 'POST',
 			'timeout'     => 90000000,
 			'redirection' => 45,
-			'sslverify'   => false,
+			'sslverify'   => true,
 		);
 
 		return wp_remote_post( $url, $args );
@@ -873,7 +876,6 @@ class Helper {
 		// Get client_id from WordPress options or request parameters.
 		$client_id = get_option( 'sg_ai_studio_client_id' );
 		if ( empty( $client_id ) ) {
-			error_log( 'No client_id set.' );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			return $auth_token;
 		}
 
@@ -895,12 +897,7 @@ class Helper {
 		try {
 			$auth_token = $auth_client->get_auth_token();
 		} catch ( \Exception $e ) {
-			error_log( 'Failed to generate authentication token: ' . $e->getMessage() );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			$auth_token = false;
-		}
-
-		if ( false === $auth_token ) {
-			error_log( 'Authentication token is invalid or could not be generated.' );  // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
 		return $auth_token;

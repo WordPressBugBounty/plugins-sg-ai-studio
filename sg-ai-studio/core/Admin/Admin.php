@@ -67,6 +67,16 @@ class Admin {
 				'default'           => '',
 			)
 		);
+
+		register_setting(
+			'sg_ai_studio_settings',
+			'sg_ai_studio_disable_gutenberg_actions',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => false,
+			)
+		);
 	}
 
 	/**

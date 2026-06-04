@@ -391,9 +391,6 @@ class Ai_Studio_Text_Generation_Model extends AbstractApiBasedModel implements T
 	 * @return string The chat_source identifier for the request.
 	 */
 	protected function determine_chat_source(): string {
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
-		$backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 20 );
-
 		// Map of function/class patterns to chat_source values.
 		$patterns = array(
 			'excerpt'            => 'wp_admin_excerpt_generation',
