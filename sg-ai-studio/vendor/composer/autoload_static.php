@@ -4,17 +4,19 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88
+class ComposerStaticInit2b259b51f87deb57726fd6be9f32d885
 {
     public static $files = array (
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'S' => 
         array (
+            'Symfony\\Polyfill\\Php80\\' => 23,
             'SiteGround_i18n\\' => 16,
             'SiteGround_Helper\\' => 18,
             'SG_AI_Studio\\' => 13,
@@ -42,6 +44,10 @@ class ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88
     );
 
     public static $prefixDirsPsr4 = array (
+        'Symfony\\Polyfill\\Php80\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
+        ),
         'SiteGround_i18n\\' => 
         array (
             0 => __DIR__ . '/..' . '/siteground/siteground-i18n/src',
@@ -100,16 +106,21 @@ class ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88
     );
 
     public static $classMap = array (
+        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
+        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
+        'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+        'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit0382e0644fae7cd5247775f6ea49cb88::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$classMap;
 
         }, null, ClassLoader::class);
     }

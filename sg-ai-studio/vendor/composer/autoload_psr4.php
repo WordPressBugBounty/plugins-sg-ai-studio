@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Symfony\\Polyfill\\Php80\\' => array($vendorDir . '/symfony/polyfill-php80'),
     'SiteGround_i18n\\' => array($vendorDir . '/siteground/siteground-i18n/src'),
     'SiteGround_Helper\\' => array($vendorDir . '/siteground/siteground-helper/src'),
     'SG_AI_Studio\\' => array($baseDir . '/core'),
