@@ -4,101 +4,51 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit2b259b51f87deb57726fd6be9f32d885
+class ComposerStaticInitc37b2fe88586dc937843695cb4ee869c
 {
-    public static $files = array (
-        '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
         'S' => 
         array (
-            'Symfony\\Polyfill\\Php80\\' => 23,
-            'SiteGround_i18n\\' => 16,
-            'SiteGround_Helper\\' => 18,
+            'SG_AI_Studio\\Vendor\\SiteGround_i18n\\' => 36,
+            'SG_AI_Studio\\Vendor\\SiteGround_Helper\\' => 38,
+            'SG_AI_Studio\\Vendor\\Firebase\\JWT\\' => 33,
+            'SG_AI_Studio\\Vendor\\CharlesRumley\\Tests\\' => 40,
+            'SG_AI_Studio\\Vendor\\CharlesRumley\\' => 34,
             'SG_AI_Studio\\' => 13,
-        ),
-        'P' => 
-        array (
-            'Psr\\Http\\Message\\' => 17,
-            'Psr\\Http\\Client\\' => 16,
-        ),
-        'G' => 
-        array (
-            'GuzzleHttp\\Psr7\\' => 16,
-            'GuzzleHttp\\Promise\\' => 19,
-            'GuzzleHttp\\' => 11,
-        ),
-        'F' => 
-        array (
-            'Firebase\\JWT\\' => 13,
-        ),
-        'C' => 
-        array (
-            'CharlesRumley\\Tests\\' => 20,
-            'CharlesRumley\\' => 14,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Symfony\\Polyfill\\Php80\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
-        ),
-        'SiteGround_i18n\\' => 
+        'SG_AI_Studio\\Vendor\\SiteGround_i18n\\' => 
         array (
             0 => __DIR__ . '/..' . '/siteground/siteground-i18n/src',
         ),
-        'SiteGround_Helper\\' => 
+        'SG_AI_Studio\\Vendor\\SiteGround_Helper\\' => 
         array (
             0 => __DIR__ . '/..' . '/siteground/siteground-helper/src',
+        ),
+        'SG_AI_Studio\\Vendor\\Firebase\\JWT\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
+        ),
+        'SG_AI_Studio\\Vendor\\CharlesRumley\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/charles-rumley/php-po-to-json/tests',
+        ),
+        'SG_AI_Studio\\Vendor\\CharlesRumley\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/charles-rumley/php-po-to-json/src',
         ),
         'SG_AI_Studio\\' => 
         array (
             0 => __DIR__ . '/../..' . '/core',
-        ),
-        'Psr\\Http\\Message\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
-        ),
-        'Psr\\Http\\Client\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/http-client/src',
-        ),
-        'GuzzleHttp\\Psr7\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/psr7/src',
-        ),
-        'GuzzleHttp\\Promise\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/promises/src',
-        ),
-        'GuzzleHttp\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
-        ),
-        'Firebase\\JWT\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
-        ),
-        'CharlesRumley\\Tests\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/charles-rumley/php-po-to-json/tests',
-        ),
-        'CharlesRumley\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/charles-rumley/php-po-to-json/src',
         ),
     );
 
     public static $prefixesPsr0 = array (
         'S' => 
         array (
-            'Sepia' => 
+            'SG_AI_Studio\\Vendor\\Sepia' => 
             array (
                 0 => __DIR__ . '/..' . '/sepia/po-parser/src',
             ),
@@ -106,21 +56,20 @@ class ComposerStaticInit2b259b51f87deb57726fd6be9f32d885
     );
 
     public static $classMap = array (
-        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
-        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
-        'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
-        'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
+        'SG_AI_Studio\\Vendor\\Sepia\\FileHandler' => __DIR__ . '/..' . '/sepia/po-parser/src/Sepia/FileHandler.php',
+        'SG_AI_Studio\\Vendor\\Sepia\\InterfaceHandler' => __DIR__ . '/..' . '/sepia/po-parser/src/Sepia/InterfaceHandler.php',
+        'SG_AI_Studio\\Vendor\\Sepia\\PoParser' => __DIR__ . '/..' . '/sepia/po-parser/src/Sepia/PoParser.php',
+        'SG_AI_Studio\\Vendor\\Sepia\\StringHandler' => __DIR__ . '/..' . '/sepia/po-parser/src/Sepia/StringHandler.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit2b259b51f87deb57726fd6be9f32d885::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc37b2fe88586dc937843695cb4ee869c::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc37b2fe88586dc937843695cb4ee869c::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitc37b2fe88586dc937843695cb4ee869c::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitc37b2fe88586dc937843695cb4ee869c::$classMap;
 
         }, null, ClassLoader::class);
     }

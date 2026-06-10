@@ -3,10 +3,8 @@ declare(strict_types=1);
 
 namespace SG_AI_Studio\HelperAuth;
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use SG_AI_Studio\Vendor\Firebase\JWT\JWT;
+use SG_AI_Studio\Vendor\Firebase\JWT\Key;
 use SG_AI_Studio\Helper\Helper;
 class SignApiAuthException extends \Exception
 {
@@ -257,52 +255,43 @@ class SignApiClient
 	}
 
 	private function make_token_request( TokenRequest $tokenRequest ): string {
-		$client = new Client(
-			[
+		$args = array(
 			'timeout' => $this->timeout,
-			'verify' => $this->verifyCertificate,
-			]
+			'sslverify' => $this->verifyCertificate,
+			'headers' => $this->getDefaultHeaders(),
+			'body' => wp_json_encode( $tokenRequest->toArray() ),
 		);
 
-		try {
-			$response = $client->post($this->signServerUrl, [
-				'json' => $tokenRequest->toArray(),
-				'headers' => $this->getDefaultHeaders(),
-			]);
+		$response = wp_remote_post( $this->signServerUrl, $args );
 
-
-			if ($response->getStatusCode() >= 400) {
-				$errorMsg = "Sign server error: " . $response->getStatusCode();
-				try {
-					$errorData = json_decode($response->getBody()->getContents(), true);
-
-					if (isset($errorData['message'])) {
-						$errorMsg = $errorData['message'];
-					}
-				} catch (\Exception $e) {
-					$responseText = $response->getBody()->getContents();
-					if (!empty($responseText)) {
-
-						$errorMsg = $responseText;
-					}
-				}
-				throw new SignApiAuthException($errorMsg, $response->getStatusCode());
-			}
-
-			$responseData = json_decode($response->getBody()->getContents(), true);
-
-
-			if (!isset($responseData['data']['token'])) {
-				throw new SignApiAuthException("No token returned from sign server");
-			}
-
-			$signedToken = $responseData['data']['token'];
-
-			return $signedToken;
-
-		} catch (GuzzleException $e) {
-			throw new SignApiAuthException("HTTP request failed: " . esc_html( $e->getMessage() ));
+		// Check for WP_Error
+		if ( is_wp_error( $response ) ) {
+			throw new SignApiAuthException( "HTTP request failed: " . esc_html( $response->get_error_message() ) );
 		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		$body = wp_remote_retrieve_body( $response );
+
+		if ( $status_code >= 400 ) {
+			$errorMsg = "Sign server error: " . $status_code;
+			$errorData = json_decode( $body, true );
+
+			if ( isset( $errorData['message'] ) ) {
+				$errorMsg = $errorData['message'];
+			} elseif ( ! empty( $body ) ) {
+				$errorMsg = $body;
+			}
+
+			throw new SignApiAuthException( $errorMsg, $status_code );
+		}
+
+		$responseData = json_decode( $body, true );
+
+		if ( ! isset( $responseData['data']['token'] ) ) {
+			throw new SignApiAuthException( "No token returned from sign server" );
+		}
+
+		return $responseData['data']['token'];
 	}
 
 	public function get_auth_token( int $retries = 5 ): string {

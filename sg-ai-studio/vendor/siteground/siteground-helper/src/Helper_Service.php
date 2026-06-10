@@ -3,7 +3,7 @@
  * SiteGround Helper Service.
  */
 
-namespace SiteGround_Helper;
+namespace SG_AI_Studio\Vendor\SiteGround_Helper;
 
 /**
  * SiteGround_Helper_Service class.

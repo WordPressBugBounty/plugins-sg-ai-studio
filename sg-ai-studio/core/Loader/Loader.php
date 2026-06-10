@@ -18,7 +18,7 @@ use SG_AI_Studio\Activity_Log\Activity_Log;
 use SG_AI_Studio\Gutenberg\Gutenberg;
 use SG_AI_Studio\Ai_Provider\Ai_Provider_Hooks;
 use SG_AI_Studio\Install_Service\Install_Service;
-use SiteGround_i18n\i18n_Service;
+use SG_AI_Studio\Vendor\SiteGround_i18n\i18n_Service;
 
 /**
  * Loader functions and main initialization class.

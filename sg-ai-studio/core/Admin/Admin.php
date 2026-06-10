@@ -9,7 +9,7 @@ namespace SG_AI_Studio\Admin;
 
 use SG_AI_Studio;
 use SG_AI_Studio\Helper\Helper;
-use SiteGround_i18n\i18n_Service;
+use SG_AI_Studio\Vendor\SiteGround_i18n\i18n_Service;
 
 /**
  * Handle all hooks for our custom admin page.

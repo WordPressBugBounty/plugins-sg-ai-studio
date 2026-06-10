@@ -6,10 +6,9 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
-    'PhpToken' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
-    'Stringable' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
-    'UnhandledMatchError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
-    'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
+    'SG_AI_Studio\\Vendor\\Sepia\\FileHandler' => $vendorDir . '/sepia/po-parser/src/Sepia/FileHandler.php',
+    'SG_AI_Studio\\Vendor\\Sepia\\InterfaceHandler' => $vendorDir . '/sepia/po-parser/src/Sepia/InterfaceHandler.php',
+    'SG_AI_Studio\\Vendor\\Sepia\\PoParser' => $vendorDir . '/sepia/po-parser/src/Sepia/PoParser.php',
+    'SG_AI_Studio\\Vendor\\Sepia\\StringHandler' => $vendorDir . '/sepia/po-parser/src/Sepia/StringHandler.php',
 );
