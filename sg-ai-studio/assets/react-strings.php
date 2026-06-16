@@ -2,7 +2,7 @@
 /* THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY. */
 $wp_ai_tools_plugin_i18n_strings = array(
 	__( "Ask me anything WordPress related and I'll help.", 'sg-ai-studio' ),
-	__( 'SiteGround AI Studio', 'sg-ai-studio' ),
+	__( 'AI Agent by SiteGround', 'sg-ai-studio' ),
 	__( 'New chat', 'sg-ai-studio' ),
 	__( 'History', 'sg-ai-studio' ),
 	__( 'Minimize', 'sg-ai-studio' ),
@@ -124,3 +124,4 @@ $wp_ai_tools_plugin_i18n_strings = array(
 	__( 'Groups', 'sg-ai-studio' ),
 	__( 'Selected Groups', 'sg-ai-studio' ),
 );
+/* THIS IS THE END OF THE GENERATED FILE */
