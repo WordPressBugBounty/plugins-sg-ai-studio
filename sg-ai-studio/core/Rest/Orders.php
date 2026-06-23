@@ -1459,7 +1459,7 @@ class Orders extends Rest_Controller_Base {
 			$args['status'] = $request['status'];
 		}
 
-		if ( isset( $request['customer'] ) && ! empty( $request['customer'] ) ) {
+		if ( isset( $request['customer'] ) ) {
 			$args['customer_id'] = $request['customer'];
 		}
 

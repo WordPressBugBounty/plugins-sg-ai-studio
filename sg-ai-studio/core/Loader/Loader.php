@@ -169,6 +169,7 @@ class Loader {
 	public function add_rest_hooks() {
 		// Register REST API endpoints.
 		add_action( 'rest_api_init', array( $this->rest, 'register_rest_routes' ) );
+		add_filter( 'rest_post_dispatch', array( $this->rest, 'apply_fields_filter' ), 9, 3 );
 	}
 
 	/**

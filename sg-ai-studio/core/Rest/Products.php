@@ -808,6 +808,17 @@ class Products extends Rest_Controller_Base {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function create_product( $request ) {
+		// Check if powermode is enabled.
+		if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'Powermode is disabled. This operation is not allowed.', 'sg-ai-studio' ),
+				),
+				412
+			);
+		}
+
 		$product = new \WC_Product_Simple();
 		$this->update_product_data( $product, $request );
 
@@ -1047,7 +1058,7 @@ class Products extends Rest_Controller_Base {
 
 		$data = array();
 		foreach ( $products as $product ) {
-			$data[] = $this->prepare_product_for_response( $product );
+			$data[] = $this->prepare_product_for_response( $product, 'list' );
 		}
 
 		$max_pages = ceil( $total_products / $request['per_page'] );
@@ -1222,6 +1233,11 @@ class Products extends Rest_Controller_Base {
 	 * @return int|false Attachment ID or false on failure.
 	 */
 	protected function upload_image_from_url( $image_url, $product_id ) {
+		// Validate the URL to prevent SSRF before making any outbound request.
+		if ( ! Helper::is_safe_remote_url( $image_url ) ) {
+			return false;
+		}
+
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -1517,9 +1533,11 @@ class Products extends Rest_Controller_Base {
 	 * Prepare a product for the response
 	 *
 	 * @param \WC_Product $product Product object.
+	 * @param string      $context Request context: 'view' for single reads (full fidelity)
+	 *                             or 'list' for collection responses (heavy fields omitted).
 	 * @return array Prepared product data.
 	 */
-	protected function prepare_product_for_response( $product ) {
+	protected function prepare_product_for_response( $product, $context = 'view' ) {
 		$categories = array();
 		foreach ( $product->get_category_ids() as $category_id ) {
 			$category = get_term( $category_id, 'product_cat' );
@@ -1626,6 +1644,12 @@ class Products extends Rest_Controller_Base {
 			'images'             => $images,
 			'menu_order'         => $product->get_menu_order(),
 		);
+
+		// Omit heavy fields in list context to keep collection responses small.
+		// Single reads (context 'view') retain full content.
+		if ( 'list' === $context ) {
+			unset( $data['description'], $data['short_description'] );
+		}
 
 		return $data;
 	}

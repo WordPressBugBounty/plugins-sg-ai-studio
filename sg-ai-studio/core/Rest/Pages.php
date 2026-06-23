@@ -865,7 +865,7 @@ class Pages extends Rest_Controller_Base {
 		// Format the response.
 		$data = array();
 		foreach ( $pages as $page ) {
-			$data[] = $this->prepare_page_for_response( $page );
+			$data[] = $this->prepare_page_for_response( $page, 'list' );
 		}
 
 		// Prepare pagination headers.
@@ -1156,10 +1156,12 @@ class Pages extends Rest_Controller_Base {
 	/**
 	 * Prepare a page for the response
 	 *
-	 * @param WP_Post $page Page object.
+	 * @param WP_Post $page    Page object.
+	 * @param string  $context Request context: 'view' for single reads (full fidelity)
+	 *                         or 'list' for collection responses (heavy fields omitted).
 	 * @return array Prepared page data.
 	 */
-	protected function prepare_page_for_response( $page ) {
+	protected function prepare_page_for_response( $page, $context = 'view' ) {
 		// Get the featured media ID.
 		$featured_media_id = get_post_thumbnail_id( $page->ID );
 
@@ -1186,6 +1188,12 @@ class Pages extends Rest_Controller_Base {
 			'ping_status'    => $page->ping_status,
 			'template'       => $template ? $template : 'default',
 		);
+
+		// Omit heavy fields in list context to keep collection responses small.
+		// Single reads (context 'view') retain full content.
+		if ( 'list' === $context ) {
+			unset( $data['content'], $data['excerpt'] );
+		}
 
 		return $data;
 	}

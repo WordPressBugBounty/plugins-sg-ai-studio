@@ -1395,7 +1395,8 @@
 												data: {
 													text: promptText,
 													prompt: currentActionPrompt || customPrompt,
-													action_type: textActionMode === 'predefined' ? window.sgAiStudioActionType : 'custom'
+													action_type: textActionMode === 'predefined' ? window.sgAiStudioActionType : 'custom',
+													nonce: sgAiStudioGutenberg.nonce
 												}
 											}).then(function(response) {
 												if (response.success && response.data) {

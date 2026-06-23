@@ -424,6 +424,48 @@ class Rest extends Rest_Controller_Base {
 	}
 
 	/**
+	 * Apply the `_fields` query parameter to responses across our namespace.
+	 *
+	 * Narrows the items carried in each endpoint's { success, data } envelope to the
+	 * requested fields (see Rest_Controller_Base::filter_fields_in_data), then removes
+	 * `_fields` from the request so WordPress core's `rest_filter_response_fields()`
+	 * (hooked on `rest_post_dispatch` at priority 10) skips its own top-level filtering
+	 * — which, against our envelope, would strip the whole body to an empty array.
+	 * Runs at priority 9, before core's filter. Responses that don't use the `data`
+	 * envelope are left untouched (the param is still removed so core can't break them).
+	 *
+	 * @param \WP_REST_Response|\WP_HTTP_Response|\WP_Error|mixed $response The dispatched response.
+	 * @param \WP_REST_Server                                     $server   The REST server instance.
+	 * @param \WP_REST_Request                                    $request  The request being processed.
+	 * @return mixed The (possibly narrowed) response.
+	 */
+	public function apply_fields_filter( $response, $server, $request ) {
+		$route = $request->get_route();
+
+		if ( ! is_string( $route ) || 0 !== strpos( ltrim( $route, '/' ), $this->namespace . '/' ) ) {
+			return $response;
+		}
+
+		$fields = $this->get_requested_fields( $request );
+
+		// Stop core from re-applying its own `_fields` filter to our envelope.
+		unset( $request['_fields'] );
+
+		if ( empty( $fields ) || ! ( $response instanceof \WP_REST_Response ) ) {
+			return $response;
+		}
+
+		$payload = $response->get_data();
+
+		if ( is_array( $payload ) && array_key_exists( 'data', $payload ) ) {
+			$payload['data'] = $this->filter_fields_in_data( $payload['data'], $fields );
+			$response->set_data( $payload );
+		}
+
+		return $response;
+	}
+
+	/**
 	 * Generate content callback for REST API
 	 *
 	 * @param \WP_REST_Request $request The REST request object.

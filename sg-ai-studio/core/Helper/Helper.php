@@ -516,6 +516,84 @@ class Helper {
 	}
 
 	/**
+	 * Validate that a URL is safe to fetch server-side (SSRF protection).
+	 *
+	 * Rejects non-http(s) schemes and any URL whose host resolves to a loopback,
+	 * private, link-local, reserved, or cloud-metadata (169.254.169.254) address.
+	 * Should be paired with wp_safe_remote_get() for defense in depth.
+	 *
+	 * @param string $url The URL to validate.
+	 * @return bool True if the URL is safe to fetch, false otherwise.
+	 */
+	public static function is_safe_remote_url( $url ) {
+		if ( ! is_string( $url ) || '' === $url ) {
+			return false;
+		}
+
+		$parts = wp_parse_url( $url );
+
+		// Require an explicit http(s) scheme and a host.
+		if ( empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
+			return false;
+		}
+
+		$scheme = strtolower( $parts['scheme'] );
+		if ( 'http' !== $scheme && 'https' !== $scheme ) {
+			return false;
+		}
+
+		// Strip IPv6 brackets if present.
+		$host = trim( $parts['host'], '[]' );
+
+		// Collect the set of IP addresses the host resolves to.
+		$ips = array();
+
+		if ( filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			// Host is already a literal IP address.
+			$ips[] = $host;
+		} else {
+			// Resolve both IPv4 (A) and IPv6 (AAAA) records. Silenced because a
+			// resolution failure is expected and handled via the empty() check below.
+			$records = @dns_get_record( $host, DNS_A | DNS_AAAA ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( is_array( $records ) ) {
+				foreach ( $records as $record ) {
+					if ( ! empty( $record['ip'] ) ) {
+						$ips[] = $record['ip'];
+					}
+					if ( ! empty( $record['ipv6'] ) ) {
+						$ips[] = $record['ipv6'];
+					}
+				}
+			}
+
+			// Fallback to a simple IPv4 lookup if no DNS records were returned.
+			if ( empty( $ips ) ) {
+				$resolved = gethostbynamel( $host );
+				if ( is_array( $resolved ) ) {
+					$ips = $resolved;
+				}
+			}
+		}
+
+		// If the host could not be resolved to any IP, treat it as unsafe.
+		if ( empty( $ips ) ) {
+			return false;
+		}
+
+		foreach ( $ips as $ip ) {
+			// Reject private and reserved ranges. FILTER_FLAG_NO_RES_RANGE covers
+			// loopback (127/8, ::1), link-local (169.254/16 incl. cloud metadata,
+			// fe80::/10) and other reserved ranges; FILTER_FLAG_NO_PRIV_RANGE covers
+			// 10/8, 172.16/12, 192.168/16 and fc00::/7.
+			if ( ! filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Upload image from URL to WordPress media library
 	 *
 	 * @param string $image_url The URL of the image to upload.
@@ -524,8 +602,13 @@ class Helper {
 	 * @return int|false The attachment ID on success, false on failure.
 	 */
 	public static function upload_image_from_url( $image_url, $description = '', $post_id = 0 ) {
+		// Validate the URL to prevent SSRF before making any outbound request.
+		if ( ! self::is_safe_remote_url( $image_url ) ) {
+			return false;
+		}
+
 		// Download the image.
-		$response = wp_remote_get( $image_url, array( 'timeout' => 30 ) );
+		$response = wp_safe_remote_get( $image_url, array( 'timeout' => 30 ) );
 
 		if ( is_wp_error( $response ) ) {
 			return false;

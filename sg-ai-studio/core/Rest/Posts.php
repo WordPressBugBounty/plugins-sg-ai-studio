@@ -862,7 +862,7 @@ class Posts extends Rest_Controller_Base {
 		// Format the response.
 		$data = array();
 		foreach ( $posts as $post ) {
-			$data[] = $this->prepare_post_for_response( $post );
+			$data[] = $this->prepare_post_for_response( $post, 'list' );
 		}
 
 		// Prepare pagination headers.
@@ -1150,10 +1150,12 @@ class Posts extends Rest_Controller_Base {
 	/**
 	 * Prepare a post for the response
 	 *
-	 * @param WP_Post $post Post object.
+	 * @param WP_Post $post    Post object.
+	 * @param string  $context Request context: 'view' for single reads (full fidelity)
+	 *                         or 'list' for collection responses (heavy fields omitted).
 	 * @return array Prepared post data.
 	 */
-	protected function prepare_post_for_response( $post ) {
+	protected function prepare_post_for_response( $post, $context = 'view' ) {
 		// Get the post categories.
 		$category_ids = wp_get_post_categories( $post->ID );
 
@@ -1182,6 +1184,12 @@ class Posts extends Rest_Controller_Base {
 			'categories'     => $category_ids,
 			'tags'           => $tag_ids,
 		);
+
+		// Omit heavy fields in list context to keep collection responses small.
+		// Single reads (context 'view') retain full content.
+		if ( 'list' === $context ) {
+			unset( $data['content'], $data['excerpt'] );
+		}
 
 		return $data;
 	}

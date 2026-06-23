@@ -809,8 +809,19 @@ class Media extends Rest_Controller_Base {
 				);
 			}
 
+			// Validate the URL to prevent SSRF (loopback/private/link-local/metadata).
+			if ( ! Helper::is_safe_remote_url( $file_url ) ) {
+				return new WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'The provided file URL is not allowed.', 'sg-ai-studio' ),
+					),
+					400
+				);
+			}
+
 			// Download file from URL.
-			$response = wp_remote_get( $file_url );
+			$response = wp_safe_remote_get( $file_url );
 			if ( is_wp_error( $response ) ) {
 				return new WP_REST_Response(
 					array(
@@ -1189,7 +1200,7 @@ class Media extends Rest_Controller_Base {
 		// Format the response.
 		$data = array();
 		foreach ( $media_items as $media ) {
-			$data[] = $this->prepare_media_for_response( $media );
+			$data[] = $this->prepare_media_for_response( $media, 'list' );
 		}
 
 		// Prepare pagination headers.
@@ -1384,10 +1395,12 @@ class Media extends Rest_Controller_Base {
 	/**
 	 * Prepare a media item for the response.
 	 *
-	 * @param \WP_Post $media Media object.
+	 * @param \WP_Post $media   Media object.
+	 * @param string   $context Request context: 'view' for single reads (full fidelity)
+	 *                          or 'list' for collection responses (heavy fields omitted).
 	 * @return array Prepared media data.
 	 */
-	protected function prepare_media_for_response( $media ) {
+	protected function prepare_media_for_response( $media, $context = 'view' ) {
 		// Get alt text.
 		$alt_text = get_post_meta( $media->ID, '_wp_attachment_image_alt', true );
 
@@ -1425,6 +1438,12 @@ class Media extends Rest_Controller_Base {
 			'media_type'    => $media_type,
 			'media_details' => $media_details ? $media_details : new \stdClass(),
 		);
+
+		// Omit heavy fields in list context to keep collection responses small.
+		// Single reads (context 'view') retain full media details.
+		if ( 'list' === $context ) {
+			unset( $data['media_details'] );
+		}
 
 		return $data;
 	}
