@@ -157,6 +157,26 @@ class Settings_Page extends Rest_Controller_Base {
 				),
 			)
 		);
+
+		// Register chat bubble visibility endpoint.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->base . '/chat-bubble',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_chat_bubble' ),
+					'permission_callback' => array( $this, 'ai_studio_powermode_permissions_check' ),
+					'description'         => 'Retrieves the current chat bubble visibility state.',
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_chat_bubble' ),
+					'permission_callback' => array( $this, 'ai_studio_powermode_permissions_check' ),
+					'description'         => 'Updates the chat bubble visibility state.',
+				),
+			)
+		);
 	}
 
 	/**
@@ -674,6 +694,79 @@ class Settings_Page extends Rest_Controller_Base {
 	 */
 	public static function is_gutenberg_actions_enabled() {
 		return (bool) get_option( 'sg_ai_studio_gutenberg_actions', false );
+	}
+
+	/**
+	 * Get chat bubble visibility state
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function get_chat_bubble( $request ) {
+		return new WP_REST_Response(
+			array(
+				'admin_hidden' => (bool) get_option( 'sg_ai_studio_chat_bubble_admin_hidden', false ),
+				'fe_hidden'    => (bool) get_option( 'sg_ai_studio_chat_bubble_fe_hidden', false ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update chat bubble visibility state
+	 *
+	 * Accepts either or both fields: admin_hidden, fe_hidden.
+	 * Only acts on fields present in the request.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function update_chat_bubble( $request ) {
+		$updated_fields = array();
+
+		// Handle admin_hidden field if present.
+		if ( $request->has_param( 'admin_hidden' ) ) {
+			$admin_hidden = (bool) $request->get_param( 'admin_hidden' );
+			update_option( 'sg_ai_studio_chat_bubble_admin_hidden', (int) $admin_hidden );
+			$updated_fields['admin_hidden'] = $admin_hidden;
+		}
+
+		// Handle fe_hidden field if present.
+		if ( $request->has_param( 'fe_hidden' ) ) {
+			$fe_hidden = (bool) $request->get_param( 'fe_hidden' );
+			update_option( 'sg_ai_studio_chat_bubble_fe_hidden', (int) $fe_hidden );
+			$updated_fields['fe_hidden'] = $fe_hidden;
+		}
+
+		// If no recognized fields were provided.
+		if ( empty( $updated_fields ) ) {
+			return new WP_REST_Response(
+				array(
+					'message' => __( 'No valid fields provided.', 'sg-ai-studio' ),
+				),
+				400
+			);
+		}
+
+		return new WP_REST_Response( $updated_fields, 200 );
+	}
+
+	/**
+	 * Check if chat bubble is hidden in admin
+	 *
+	 * @return bool True if admin bubble is hidden, false if visible (default).
+	 */
+	public static function is_chat_bubble_admin_hidden() {
+		return (bool) get_option( 'sg_ai_studio_chat_bubble_admin_hidden', false );
+	}
+
+	/**
+	 * Check if chat bubble is hidden on front-end
+	 *
+	 * @return bool True if FE bubble is hidden, false if visible (default).
+	 */
+	public static function is_chat_bubble_fe_hidden() {
+		return (bool) get_option( 'sg_ai_studio_chat_bubble_fe_hidden', false );
 	}
 
 }

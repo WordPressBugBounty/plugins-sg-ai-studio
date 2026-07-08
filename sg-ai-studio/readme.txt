@@ -3,7 +3,7 @@ Contributors: Hristo Sg, siteground, sstoqnov, stoyangeorgiev, elenachavdarova, 
 Tags: AI, agent, connector, siteground, chatbot
 Requires at least: 5.0
 Tested up to: 7.0
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -224,6 +224,14 @@ This plugin connects to SiteGround's AI Studio API (api.studio.siteground.ai) to
 1. The SiteGround Optimizer Dashboard Page offers a quick look at the current optimization status of your website, along with shortcuts to the relevant optimization pages.
 
 == Changelog ==
+= 1.2.6 =
+Release Date July 8th, 2026
+* New: Progressive chat display modes
+* New: Real-time AI Agent tool activity view
+* New: AI Agent chat on the logged-in front-end
+* New: Show or hide AI Agent chat bubble settings
+* Various chat UI/UX refinements
+
 = 1.2.5 =
 Release Date June 23th, 2026
 * Gutenberg Editor improvements

@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 use SG_AI_Studio\Admin\Admin;
+use SG_AI_Studio\Frontend\Frontend;
 use SG_AI_Studio\Helper\Helper;
 use SG_AI_Studio\Blocks\BlocksManager;
 use SG_AI_Studio\Rest\Rest;
@@ -30,6 +31,13 @@ class Loader {
 	 * @var Admin
 	 */
 	public $admin;
+
+	/**
+	 * Frontend class instance
+	 *
+	 * @var Frontend
+	 */
+	public $frontend;
 
 	/**
 	 * BlocksManager class instance
@@ -92,6 +100,7 @@ class Loader {
 	 */
 	public function __construct() {
 		$this->admin           = new Admin();
+		$this->frontend        = new Frontend();
 		$this->blocks          = new BlocksManager();
 		$this->rest            = new Rest();
 		$this->activity_log    = new Activity_Log();
@@ -101,6 +110,7 @@ class Loader {
 		$this->i18n_service    = new i18n_Service( 'sg-ai-studio' );
 
 		$this->add_admin_hooks();
+		$this->add_frontend_hooks();
 		$this->add_activity_log_hooks();
 		$this->add_blocks_hooks();
 		$this->add_rest_hooks();
@@ -131,6 +141,18 @@ class Loader {
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		// Add floating chat widget to admin footer.
 		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ), 9 );
+	}
+
+	/**
+	 * Register frontend-related hooks
+	 *
+	 * @return void
+	 */
+	public function add_frontend_hooks() {
+		// Register the JavaScript for the frontend area.
+		add_action( 'wp_enqueue_scripts', array( $this->frontend, 'enqueue_scripts' ) );
+		// Add floating chat widget to frontend footer.
+		add_action( 'wp_footer', array( $this->frontend, 'add_floating_chat' ), 9 );
 	}
 
 	public function add_activity_log_hooks() {
