@@ -183,81 +183,91 @@ class Admin {
 			// Create i18n service instance.
 			$i18n_service = new i18n_Service( 'sg-ai-studio' );
 
+			// Derive the current page context (re-derived on every load, never cached).
+			$page_context = Helper::get_page_context();
+
 			// Localize the script with necessary data.
+			$localized_data = array(
+				'config'       => array(
+					'home_url'         => get_home_url(),
+					'rest_base'        => rtrim( esc_url_raw( rest_url() ), '/' ),
+					'threadId'         => $thread_id,
+					'localeSlug'       => join( '-', explode( '_', \get_user_locale() ) ),
+					'locale'           => $i18n_service->get_i18n_data_json(),
+					'wp_nonce'         => wp_create_nonce( 'wp_rest' ),
+					'assetsPath'       => \SG_AI_Studio\URL . '/assets/',
+					'is_staging'       => Helper::is_staging_environment(),
+					'welcome_msg'      => $welcome_message_string,
+					'minimizeOverride' => $is_editor,
+					'plugin_version'   => \SG_AI_Studio\VERSION,
+					'wp_version'    => $wp_version,
+					'chat_bubble_admin_hidden' => (bool) get_option( 'sg_ai_studio_chat_bubble_admin_hidden', false ),
+					'defaultDisplayMode'      => get_option( 'sg_ai_studio_chat_display_mode_admin', 'popover' ),
+					'chatSource'       => 'wp_admin_chatbox',
+					'quickActions'     => array(
+						'categories'   => array(
+							array(
+								'type'  => 'most-popular',
+								'title' => __( 'Most Popular', 'sg-ai-studio' ),
+								'icon'  => 'star',
+							),
+							array(
+								'type'  => 'create-and-manage-content',
+								'title' => __( 'Create & Manage Content', 'sg-ai-studio' ),
+								'icon'  => 'edit_square',
+							),
+							array(
+								'type'  => 'optimize-and-protect',
+								'title' => __( 'Optimize & Protect', 'sg-ai-studio' ),
+								'icon'  => 'trending_up',
+							),
+							array(
+								'type'  => 'store',
+								'title' => __( 'Store', 'sg-ai-studio' ),
+								'icon'  => 'shopping_cart',
+							),
+						),
+						'actions'      => array(
+							'most-popular'        => array(
+								__( 'Write an SEO-friendly blog post with AI images and headings', 'sg-ai-studio' ),
+								__( 'Run a full SEO audit of my site', 'sg-ai-studio' ),
+								__( 'Speed up my site automatically (with SiteGround Speed Optimizer)', 'sg-ai-studio' ),
+							),
+							'create-and-manage-content' => array(
+								__( 'Create a new page from scratch (with Gutenberg building blocks)', 'sg-ai-studio' ),
+								__( 'Improve an existing post - rewrite for SEO and readability', 'sg-ai-studio' ),
+								__( 'Create 10 blog post title ideas', 'sg-ai-studio' ),
+								__( 'Clean up my site - remove sample pages and spam comments', 'sg-ai-studio' ),
+							),
+							'optimize-and-protect'   => array(
+								__( 'Speed - Optimize site performance (caching, images, CSS via SiteGround Speed Optimizer)', 'sg-ai-studio' ),
+								__( 'Secure my site - Apply recommended security hardening (via Security Optimizer)', 'sg-ai-studio' ),
+								__( 'Update my site, plugins and themes', 'sg-ai-studio' ),
+								__( 'Run a full SEO audit of my site', 'sg-ai-studio' ),
+							),
+							'store'        => array(
+								__( 'Generate sales report for last week including best selling products', 'sg-ai-studio' ),
+								__( 'Show pending orders and help me process them', 'sg-ai-studio' ),
+								__( 'Create a discount coupon', 'sg-ai-studio' ),
+								__( 'Generate product descriptions (for WooCommerce)', 'sg-ai-studio' ),
+							),
+						),
+						'actionsTitle' => __( 'Suggested actions', 'sg-ai-studio' ),
+					),
+				),
+				'page'         => 'chat',
+				'domElementId' => 'wp-ai-studio-container',
+			);
+
+			// Only expose page_context when the current page could be determined.
+			if ( null !== $page_context ) {
+				$localized_data['config']['page_context'] = $page_context;
+			}
+
 			wp_localize_script(
 				'siteground-ai-studio-chat',
 				'WPAIStudioConfig',
-				array(
-					'config'       => array(
-						'home_url'         => get_home_url(),
-						'rest_base'        => rtrim( esc_url_raw( rest_url() ), '/' ),
-						'threadId'         => $thread_id,
-						'localeSlug'       => join( '-', explode( '_', \get_user_locale() ) ),
-						'locale'           => $i18n_service->get_i18n_data_json(),
-						'wp_nonce'         => wp_create_nonce( 'wp_rest' ),
-						'assetsPath'       => \SG_AI_Studio\URL . '/assets/',
-						'is_staging'       => Helper::is_staging_environment(),
-						'welcome_msg'      => $welcome_message_string,
-						'minimizeOverride' => $is_editor,
-						'plugin_version'   => \SG_AI_Studio\VERSION,
-						'wp_version'    => $wp_version,
-						'chat_bubble_admin_hidden' => (bool) get_option( 'sg_ai_studio_chat_bubble_admin_hidden', false ),
-						'defaultDisplayMode'      => get_option( 'sg_ai_studio_chat_display_mode_admin', 'popover' ),
-						'chatSource'       => 'wp_admin_chatbox',
-						'quickActions'     => array(
-							'categories'   => array(
-								array(
-									'type'  => 'most-popular',
-									'title' => __( 'Most Popular', 'sg-ai-studio' ),
-									'icon'  => 'star',
-								),
-								array(
-									'type'  => 'create-and-generate',
-									'title' => __( 'Create & Generate', 'sg-ai-studio' ),
-									'icon'  => 'edit_square',
-								),
-								array(
-									'type'  => 'audit-and-ptimize',
-									'title' => __( 'Audit & Optimize', 'sg-ai-studio' ),
-									'icon'  => 'trending_up',
-								),
-								array(
-									'type'  => 'bulk-actions',
-									'title' => __( 'Bulk Actions', 'sg-ai-studio' ),
-									'icon'  => 'check_box',
-								),
-							),
-							'actions'      => array(
-								'most-popular'        => array(
-									__( 'Write a SEO-friendly blog post with AI images and headings', 'sg-ai-studio' ),
-									__( 'Speed up my site automatically (with SiteGround Speed Optimizer)', 'sg-ai-studio' ),
-									__( 'Generate sales report for last week including best selling products', 'sg-ai-studio' ),
-								),
-								'create-and-generate' => array(
-									__( 'Write a blog post with images and SEO', 'sg-ai-studio' ),
-									__( 'Create a new page from scratch (with Gutenberg building blocks)', 'sg-ai-studio' ),
-									__( 'Generate product descriptions (for WooCommerce)', 'sg-ai-studio' ),
-									__( 'Create 10 blog post title ideas', 'sg-ai-studio' ),
-								),
-								'audit-and-ptimize'   => array(
-									__( 'Speed - Optimize site performance (caching, images, CSS via SiteGround Speed Optimizer)', 'sg-ai-studio' ),
-									__( 'Security - Check site security status (via Security Optimizer)', 'sg-ai-studio' ),
-									__( 'Run full SEO audit of my site', 'sg-ai-studio' ),
-									__( 'Check if my site, plugins and themes are up-to-date', 'sg-ai-studio' ),
-								),
-								'bulk-actions'        => array(
-									__( 'Create 5 blog post drafts at once', 'sg-ai-studio' ),
-									__( 'Apply a 20% discount to all products in category (keeping Regular price unchanged)', 'sg-ai-studio' ),
-									__( 'Delete all spam comments', 'sg-ai-studio' ),
-									__( 'Create 3 new parent post categories with 5 sub-categories for each', 'sg-ai-studio' ),
-								),
-							),
-							'actionsTitle' => __( 'Suggested actions', 'sg-ai-studio' ),
-						),
-					),
-					'page'         => 'chat',
-					'domElementId' => 'wp-ai-studio-container',
-				)
+				$localized_data
 			);
 		}
 		wp_enqueue_media();

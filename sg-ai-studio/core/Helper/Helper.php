@@ -24,6 +24,241 @@ class Helper {
 	}
 
 	/**
+	 * Derive a minimal, structured page context for the current request.
+	 *
+	 * Re-derived on every call (never cached) so it always reflects the current
+	 * page. Only cheap, readily-available server-side fields are populated;
+	 * anything requiring a heavier lookup is omitted. Returns null when the
+	 * current page cannot be determined, in which case callers should omit
+	 * page_context entirely from the injected chat config. This function never
+	 * throws, so it is safe to call during chat init.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return array|null The page context array, or null if it cannot be determined.
+	 */
+	public static function get_page_context() {
+		if ( is_admin() ) {
+			return self::get_admin_page_context();
+		}
+
+		return self::get_frontend_page_context();
+	}
+
+	/**
+	 * Derive the page context for a wp-admin request.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return array|null The admin page context, or null if it cannot be determined.
+	 */
+	private static function get_admin_page_context() {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return null;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! $screen ) {
+			return null;
+		}
+
+		$context = array(
+			'surface' => 'wp-admin',
+		);
+
+		// Admin-relative request URL, e.g. wp-admin/post.php?post=42&action=edit.
+		$url = self::get_admin_relative_url();
+		if ( '' !== $url ) {
+			$context['url'] = $url;
+		}
+
+		if ( 'post' === $screen->base ) {
+			// Editing (or creating) a single post/page.
+			$context['screen'] = 'edit-post';
+
+			$post = self::get_edited_post();
+			if ( $post instanceof \WP_Post ) {
+				$context['post_id']   = $post->ID;
+				$context['post_type'] = $post->post_type;
+
+				$title = get_the_title( $post );
+				if ( '' !== $title ) {
+					$context['title'] = $title;
+				}
+			}
+
+			$context['editor'] = self::get_admin_editor( $screen );
+		} else {
+			// Any other admin screen (settings, tools, list tables, etc.).
+			$context['screen'] = 'settings';
+
+			$area = self::get_admin_area_label();
+			if ( '' !== $area ) {
+				$context['area'] = $area;
+			}
+		}
+
+		return $context;
+	}
+
+	/**
+	 * Derive the page context for a front-end request.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return array|null The front-end page context, or null if it cannot be determined.
+	 */
+	private static function get_frontend_page_context() {
+		$context = array(
+			'surface' => 'frontend',
+		);
+
+		$queried = get_queried_object();
+
+		if ( $queried instanceof \WP_Post ) {
+			$context['post_id']   = $queried->ID;
+			$context['post_type'] = $queried->post_type;
+
+			$title = get_the_title( $queried );
+			if ( '' !== $title ) {
+				$context['title'] = $title;
+			}
+
+			$permalink = get_permalink( $queried );
+			if ( $permalink ) {
+				$context['url'] = wp_make_link_relative( $permalink );
+			}
+		}
+
+		// Fall back to the WordPress-parsed request path (from the rewrite engine)
+		// when no canonical permalink was derived, e.g. on archives or search.
+		if ( empty( $context['url'] ) ) {
+			$wp_request = isset( $GLOBALS['wp']->request ) && is_string( $GLOBALS['wp']->request ) ? $GLOBALS['wp']->request : '';
+			if ( '' !== $wp_request ) {
+				$context['url'] = '/' . ltrim( $wp_request, '/' );
+			} elseif ( ( function_exists( 'is_front_page' ) && is_front_page() ) || ( function_exists( 'is_home' ) && is_home() ) ) {
+				$context['url'] = '/';
+			}
+		}
+
+		// Without at least a URL or a queried post there is nothing to report.
+		if ( count( $context ) <= 1 ) {
+			return null;
+		}
+
+		return $context;
+	}
+
+	/**
+	 * Resolve the post being edited on the current admin screen, if any.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return \WP_Post|null The edited post, or null when none can be resolved.
+	 */
+	private static function get_edited_post() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( isset( $_GET['post'] ) ) {
+			// Read-only context lookup; no state change, so no nonce is required.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$post = get_post( absint( wp_unslash( $_GET['post'] ) ) );
+			if ( $post instanceof \WP_Post ) {
+				return $post;
+			}
+		}
+
+		if ( ! empty( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof \WP_Post ) {
+			return $GLOBALS['post'];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Detect which editor is active on the current admin edit screen.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @param \WP_Screen $screen The current admin screen.
+	 * @return string One of 'gutenberg', 'elementor' or 'classic'.
+	 */
+	private static function get_admin_editor( $screen ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['action'] ) && 'elementor' === $_GET['action'] ) {
+			return 'elementor';
+		}
+
+		if ( $screen && method_exists( $screen, 'is_block_editor' ) && $screen->is_block_editor() ) {
+			return 'gutenberg';
+		}
+
+		return 'classic';
+	}
+
+	/**
+	 * Build the admin-relative request URL (from wp-admin/ onward).
+	 *
+	 * Uses the WordPress-parsed script name ($pagenow) rather than the raw
+	 * request URI, and re-attaches only the context-relevant query args, each
+	 * sanitized individually, so nonces and other transient params never leak
+	 * into the chat config.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return string The relative URL, or an empty string when unavailable.
+	 */
+	private static function get_admin_relative_url() {
+		$pagenow = isset( $GLOBALS['pagenow'] ) && is_string( $GLOBALS['pagenow'] ) ? $GLOBALS['pagenow'] : '';
+
+		if ( '' === $pagenow ) {
+			return '';
+		}
+
+		$url = 'wp-admin/' . $pagenow;
+
+		$allowed_args = array( 'page', 'post', 'post_type', 'action', 'taxonomy', 'tab' );
+		$query        = array();
+
+		foreach ( $allowed_args as $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( isset( $_GET[ $key ] ) ) {
+				// Read-only context lookup; no state change, so no nonce is required.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$query[ $key ] = sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
+			}
+		}
+
+		if ( ! empty( $query ) ) {
+			$url = add_query_arg( $query, $url );
+		}
+
+		return ltrim( esc_url_raw( '/' . $url ), '/' );
+	}
+
+	/**
+	 * Resolve a human-readable label for the current admin area/screen.
+	 *
+	 * @since 1.2.7
+	 *
+	 * @return string The area label (e.g. "Speed Optimizer"), or an empty string.
+	 */
+	private static function get_admin_area_label() {
+		if ( function_exists( 'get_admin_page_title' ) ) {
+			$title = get_admin_page_title();
+			if ( is_string( $title ) && '' !== trim( $title ) ) {
+				return wp_strip_all_tags( $title );
+			}
+		}
+
+		if ( ! empty( $GLOBALS['title'] ) && is_string( $GLOBALS['title'] ) ) {
+			return wp_strip_all_tags( $GLOBALS['title'] );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Send message to AI Studio API
 	 *
 	 * @param string $message The user message.
@@ -995,6 +1230,42 @@ class Helper {
 	 */
 	public static function validate_force_param( $value ) {
 		return $value === true || $value === 'true' || $value === 1;
+	}
+
+	/**
+	 * Save a pre-edit revision for a post so an edit has a deterministic restore point.
+	 *
+	 * Uses WordPress' normal revision path, which respects the site's
+	 * `WP_POST_REVISIONS` config and the post type's revision support. This does
+	 * NOT force revisions: when revisions are disabled or unsupported (e.g. most
+	 * WooCommerce products), no revision is created and 0 is returned. Callers
+	 * should report the site status separately via wp_revisions_enabled().
+	 *
+	 * Call this BEFORE the update is persisted so the snapshot captures the
+	 * pre-edit state.
+	 *
+	 * @param int $post_id The post ID to snapshot.
+	 * @return int The pre-edit revision ID, or 0 when none exists/could be created.
+	 */
+	public static function save_pre_edit_revision( $post_id ) {
+		// Respects the site's WP_POST_REVISIONS config and post-type support.
+		$revision_id = wp_save_post_revision( $post_id );
+
+		if ( ! is_wp_error( $revision_id ) && (int) $revision_id > 0 ) {
+			return (int) $revision_id;
+		}
+
+		// Content unchanged since the last snapshot -> that revision is the
+		// restore point. Returns 0 when revisions are disabled or unsupported.
+		$revisions = wp_get_post_revisions(
+			$post_id,
+			array(
+				'numberposts' => 1,
+				'fields'      => 'ids',
+			)
+		);
+
+		return ! empty( $revisions ) ? (int) reset( $revisions ) : 0;
 	}
 
 	/**

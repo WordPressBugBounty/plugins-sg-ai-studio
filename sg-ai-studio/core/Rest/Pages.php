@@ -18,6 +18,8 @@ use SG_AI_Studio\Helper\Helper;
  * Handles REST API endpoints for page operations.
  */
 class Pages extends Rest_Controller_Base {
+	use Revisions;
+
 	/**
 	 * REST API base
 	 *
@@ -131,6 +133,9 @@ class Pages extends Rest_Controller_Base {
 				'schema' => array( $this, 'get_batch_schema' ),
 			)
 		);
+
+		// Register revision endpoints (list, read, restore, prune).
+		$this->register_revision_routes( $this->base, 'page' );
 	}
 
 	/**
@@ -683,6 +688,10 @@ class Pages extends Rest_Controller_Base {
 			);
 		}
 
+		// Save a pre-edit revision so the edit has a deterministic restore point.
+		// Respects the site's revision config; 0 when disabled/unsupported.
+		$revision_id = Helper::save_pre_edit_revision( $page_id );
+
 		// Prepare page data.
 		$page_data              = $this->prepare_page_for_database( $request );
 		$page_data['ID']        = $page_id;
@@ -736,12 +745,14 @@ class Pages extends Rest_Controller_Base {
 		// Return lean response for write operation.
 		return new WP_REST_Response(
 			array(
-				'success'  => true,
-				'id'       => $page->ID,
-				'title'    => $page->post_title,
-				'status'   => $page->post_status,
-				'link'     => get_permalink( $page->ID ),
-				'modified' => mysql_to_rfc3339( $page->post_modified ),
+				'success'           => true,
+				'id'                => $page->ID,
+				'title'             => $page->post_title,
+				'status'            => $page->post_status,
+				'link'              => get_permalink( $page->ID ),
+				'modified'          => mysql_to_rfc3339( $page->post_modified ),
+				'revision_id'       => $revision_id ? $revision_id : null,
+				'revisions_enabled' => wp_revisions_enabled( $page ),
 			),
 			200
 		);
