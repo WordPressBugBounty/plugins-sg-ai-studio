@@ -42,6 +42,16 @@ class Helper {
 			return self::get_admin_page_context();
 		}
 
+		// Page builders (Elementor, Beaver, Divi, Bricks, etc.) render their
+		// "Edit with <builder>" experience on a front-end URL inside an <iframe>,
+		// so WordPress' is_admin() returns false even though the user is really on
+		// an editor screen. Detect that here and report a 'wp-admin' surface with
+		// the correct editor, instead of mislabelling it as 'frontend'.
+		$builder = self::get_page_builder_editor();
+		if ( '' !== $builder ) {
+			return self::get_builder_page_context( $builder );
+		}
+
 		return self::get_frontend_page_context();
 	}
 
@@ -194,6 +204,203 @@ class Helper {
 		}
 
 		return 'classic';
+	}
+
+	/**
+	 * Detect a front-end page builder that is currently in edit/preview mode.
+	 *
+	 * These builders load their editor (or its live-preview iframe) on a
+	 * front-end URL, so is_admin() is false. Each is identified primarily by the
+	 * distinctive query argument the builder itself adds to that request (the
+	 * most reliable signal at enqueue time), with the builder's own API used as a
+	 * secondary, guarded confirmation so a renamed function can never fatal.
+	 *
+	 * @since 1.2.8
+	 *
+	 * @return string The builder slug (e.g. 'elementor'), or '' when none is active.
+	 */
+	private static function get_page_builder_editor() {
+		// Elementor — the editor shell is a wp-admin URL (?action=elementor, already
+		// handled above); its live preview loads from the front end (?elementor-preview=<id>).
+		if (
+			self::has_query_param( 'elementor-preview' )
+			|| 'elementor' === self::get_query_param( 'action' )
+			|| ( class_exists( '\Elementor\Plugin' )
+				&& isset( \Elementor\Plugin::$instance->preview )
+				&& \Elementor\Plugin::$instance->preview->is_preview_mode() )
+		) {
+			return 'elementor';
+		}
+
+		// Beaver Builder — front-end editor (?fl_builder).
+		if (
+			self::has_query_param( 'fl_builder' )
+			|| ( class_exists( '\FLBuilderModel' ) && \FLBuilderModel::is_builder_active() )
+		) {
+			return 'beaver-builder';
+		}
+
+		// Divi Visual Builder (?et_fb=1).
+		if (
+			'' !== self::get_query_param( 'et_fb' )
+			|| ( function_exists( 'et_core_is_fb_enabled' ) && et_core_is_fb_enabled() )
+		) {
+			return 'divi';
+		}
+
+		// Bricks Builder (?bricks=run).
+		if (
+			'run' === self::get_query_param( 'bricks' )
+			|| ( function_exists( 'bricks_is_builder' ) && bricks_is_builder() )
+		) {
+			return 'bricks';
+		}
+
+		// Oxygen Builder (?ct_builder=true, its iframe adds ?oxygen_iframe).
+		if (
+			'' !== self::get_query_param( 'ct_builder' )
+			|| self::has_query_param( 'oxygen_iframe' )
+			|| defined( 'SHOW_CT_BUILDER' )
+		) {
+			return 'oxygen';
+		}
+
+		// WPBakery Page Builder / Visual Composer front-end editor (?vc_action=vc_inline).
+		if (
+			'vc_inline' === self::get_query_param( 'vc_action' )
+			|| self::has_query_param( 'vc_editable' )
+			|| ( function_exists( 'vc_is_inline' ) && vc_is_inline() )
+		) {
+			return 'wpbakery';
+		}
+
+		// Thrive Architect / Thrive Theme Builder (?tve=true).
+		if (
+			'true' === self::get_query_param( 'tve' )
+			|| ( function_exists( 'tve_in_architect' ) && tve_in_architect() )
+		) {
+			return 'thrive-architect';
+		}
+
+		// Avada Live / Fusion Builder (?fb-edit=1).
+		if (
+			'' !== self::get_query_param( 'fb-edit' )
+			|| ( function_exists( 'fusion_is_builder_frame' ) && fusion_is_builder_frame() )
+		) {
+			return 'avada';
+		}
+
+		// Cornerstone / Pro (ThemeCo) front-end editor.
+		if (
+			self::has_query_param( 'cornerstone' )
+			|| self::has_query_param( 'cs-preview' )
+			|| ( function_exists( 'cornerstone_is_permalink_endpoint' ) && cornerstone_is_permalink_endpoint() )
+		) {
+			return 'cornerstone';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a wp-admin edit-post context for a front-end page builder session.
+	 *
+	 * Mirrors the shape produced for the native editor by get_admin_page_context()
+	 * so downstream consumers see a consistent "editing a post in wp-admin"
+	 * context regardless of which builder is in use.
+	 *
+	 * @since 1.2.8
+	 *
+	 * @param string $editor The builder slug from get_page_builder_editor().
+	 * @return array The page context array.
+	 */
+	private static function get_builder_page_context( $editor ) {
+		$context = array(
+			'surface' => 'wp-admin',
+			'screen'  => 'edit-post',
+			'editor'  => $editor,
+		);
+
+		$post = self::get_builder_edited_post();
+		if ( $post instanceof \WP_Post ) {
+			$context['post_id']   = $post->ID;
+			$context['post_type'] = $post->post_type;
+
+			$title = get_the_title( $post );
+			if ( '' !== $title ) {
+				$context['title'] = $title;
+			}
+
+			// The canonical wp-admin edit URL for the post, matching the surface.
+			$context['url'] = 'wp-admin/post.php?post=' . $post->ID . '&action=edit';
+		}
+
+		return $context;
+	}
+
+	/**
+	 * Resolve the post being edited in a front-end page builder session.
+	 *
+	 * Builders load on the post's own front-end URL, so the main query normally
+	 * already resolves to it; a post ID passed in the query string is used as a
+	 * fallback (e.g. Elementor's ?elementor-preview=<id>).
+	 *
+	 * @since 1.2.8
+	 *
+	 * @return \WP_Post|null The edited post, or null when none can be resolved.
+	 */
+	private static function get_builder_edited_post() {
+		$queried = get_queried_object();
+		if ( $queried instanceof \WP_Post ) {
+			return $queried;
+		}
+
+		foreach ( array( 'elementor-preview', 'fl_builder_id', 'post', 'p', 'page_id', 'post_id' ) as $key ) {
+			$value = self::get_query_param( $key );
+			if ( '' !== $value ) {
+				$post = get_post( absint( $value ) );
+				if ( $post instanceof \WP_Post ) {
+					return $post;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Whether a read-only query argument is present on the current request.
+	 *
+	 * @since 1.2.8
+	 *
+	 * @param string $key The query argument name.
+	 * @return bool True when the argument is set.
+	 */
+	private static function has_query_param( $key ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return isset( $_GET[ $key ] );
+	}
+
+	/**
+	 * Read and sanitize a read-only query argument from the current request.
+	 *
+	 * Used only for cheap, read-only page-context detection, so no nonce is
+	 * required; the value is always sanitized before use.
+	 *
+	 * @since 1.2.8
+	 *
+	 * @param string $key The query argument name.
+	 * @return string The sanitized value, or '' when the argument is absent.
+	 */
+	private static function get_query_param( $key ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET[ $key ] ) ) {
+			return '';
+		}
+
+		// Read-only context lookup; no state change, so no nonce is required.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return sanitize_text_field( wp_unslash( $_GET[ $key ] ) );
 	}
 
 	/**

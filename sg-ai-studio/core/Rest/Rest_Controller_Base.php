@@ -32,6 +32,55 @@ abstract class Rest_Controller_Base {
 	}
 
 	/**
+	 * Verify user has upload permissions and post ownership if applicable.
+	 *
+	 * Shared by every endpoint that can persist AI-generated images to the media
+	 * library, so the `upload_files` capability is enforced consistently.
+	 *
+	 * @param int $post_id Optional post ID to verify ownership.
+	 * @return true|\WP_REST_Response True if authorized, WP_REST_Response error otherwise.
+	 */
+	protected function verify_upload_authorization( $post_id = 0 ) {
+		// Check if user has upload_files capability.
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return new \WP_REST_Response(
+				array(
+					'success' => false,
+					'message' => __( 'You do not have permission to upload files.', 'sg-ai-studio' ),
+				),
+				403
+			);
+		}
+
+		// If post_id is provided, verify user can edit that specific post.
+		if ( $post_id > 0 ) {
+			$post = get_post( $post_id );
+
+			if ( ! $post ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'Invalid post ID.', 'sg-ai-studio' ),
+					),
+					404
+				);
+			}
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'You do not have permission to edit this post.', 'sg-ai-studio' ),
+					),
+					403
+				);
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Parse the `_fields` query parameter into a normalized list of field names.
 	 *
 	 * Only top-level field selection is supported, so any dot-notation field

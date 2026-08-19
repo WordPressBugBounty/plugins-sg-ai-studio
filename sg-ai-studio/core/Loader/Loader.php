@@ -141,6 +141,8 @@ class Loader {
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		// Add floating chat widget to admin footer.
 		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ), 9 );
+		// Reorder submenu pages.
+		add_filter( 'menu_order', array( $this->admin, 'reorder_submenu_pages' ) );
 	}
 
 	/**

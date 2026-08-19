@@ -483,6 +483,18 @@ class Rest extends Rest_Controller_Base {
 			);
 		}
 
+		// Get post_id if provided.
+		$post_id = $request->get_param( 'post_id' );
+		if ( empty( $post_id ) ) {
+			$post_id = 0;
+		}
+
+		// Verify the user can upload files (generated blocks may embed AI images).
+		$auth_check = $this->verify_upload_authorization( $post_id );
+		if ( true !== $auth_check ) {
+			return $auth_check;
+		}
+
 		// Get prompt.
 		$prompt = sanitize_textarea_field( $request->get_param( 'prompt' ) );
 
@@ -512,12 +524,6 @@ class Rest extends Rest_Controller_Base {
 				),
 				500
 			);
-		}
-
-		// Get post_id if provided.
-		$post_id = $request->get_param( 'post_id' );
-		if ( empty( $post_id ) ) {
-			$post_id = 0;
 		}
 
 		try {

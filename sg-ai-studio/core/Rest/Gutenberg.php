@@ -110,52 +110,6 @@ class Gutenberg extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Verify user has upload permissions and post ownership if applicable
-	 *
-	 * @param int $post_id Optional post ID to verify ownership.
-	 * @return true|WP_REST_Response True if authorized, WP_REST_Response error otherwise.
-	 */
-	private function verify_upload_authorization( $post_id = 0 ) {
-		// Check if user has upload_files capability.
-		if ( ! current_user_can( 'upload_files' ) ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'You do not have permission to upload files.', 'sg-ai-studio' ),
-				),
-				403
-			);
-		}
-
-		// If post_id is provided, verify user can edit that specific post.
-		if ( $post_id > 0 ) {
-			$post = get_post( $post_id );
-
-			if ( ! $post ) {
-				return new WP_REST_Response(
-					array(
-						'success' => false,
-						'message' => __( 'Invalid post ID.', 'sg-ai-studio' ),
-					),
-					404
-				);
-			}
-
-			if ( ! current_user_can( 'edit_post', $post_id ) ) {
-				return new WP_REST_Response(
-					array(
-						'success' => false,
-						'message' => __( 'You do not have permission to edit this post.', 'sg-ai-studio' ),
-					),
-					403
-				);
-			}
-		}
-
-		return true;
-	}
-
-	/**
 	 * Get arguments for text editing.
 	 *
 	 * @return array

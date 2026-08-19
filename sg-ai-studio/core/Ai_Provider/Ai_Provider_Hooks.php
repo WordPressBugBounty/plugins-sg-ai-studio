@@ -239,6 +239,7 @@ class Ai_Provider_Hooks {
 			$current_screen->id === 'options-connectors' ||
 			( isset( $_GET['page'] ) && $_GET['page'] === 'options-connectors' )
 		);
+		$sg_ai_studio_url = get_option('sg_ai_studio_connected', false ) ? admin_url( 'admin.php?page=sg-ai-studio-settings' ) : admin_url( 'admin.php?page=sg-ai-studio' );
 
 		if ( ! $is_connectors_page ) {
 			return;
@@ -257,7 +258,7 @@ class Ai_Provider_Hooks {
 			'sg_ai_studio_connected',
 			array(
 				'connected' => get_option( 'sg_ai_studio_provider_connected', false ),
-				'admin_url' => admin_url( 'admin.php?page=sg-ai-studio' ),
+				'admin_url' => $sg_ai_studio_url,
 			)
 		);
 

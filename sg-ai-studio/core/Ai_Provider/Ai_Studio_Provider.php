@@ -77,14 +77,14 @@ class Ai_Studio_Provider extends AbstractApiProvider {
 	protected static function createProviderMetadata(): ProviderMetadata {
 		// Build path using WP_PLUGIN_DIR to match what WordPress expects
 		$logo_path = WP_PLUGIN_DIR . '/sg-ai-studio/assets/images/logo-siteground-compact-dark.svg';
-
+		$sg_ai_studio_url = get_option('sg_ai_studio_connected', false ) ? admin_url( 'admin.php?page=sg-ai-studio-settings' ) : admin_url( 'admin.php?page=sg-ai-studio' );
 		// ProviderMetadata constructor signature (added in AiClient 1.3.0):
 		// __construct($id, $name, $type, $credentialsUrl, $authenticationMethod, $description, $logoPath)
 		return new ProviderMetadata(
 			'ai_studio_siteground',
 			'SiteGround AI',
 			ProviderTypeEnum::cloud(),
-			admin_url( 'admin.php?page=sg-ai-studio' ),
+			$sg_ai_studio_url,
 			RequestAuthenticationMethod::apiKey(),
 			__( 'Multi-model AI service for text, image, translation, research & more.', 'sg-ai-studio' ),
 			$logo_path

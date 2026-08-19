@@ -17,17 +17,61 @@ use SG_AI_Studio\Vendor\SiteGround_i18n\i18n_Service;
 class Admin {
 
 	/**
-	 * Get the subpages id.
+	 * Subpages array.
+	 *
+	 * @var array
+	 */
+	public $subpages = array(
+		'settings'     => 'Settings',
+		'activity-log' => 'Activity Log & Usage',
+	);
+
+	/**
+	 * Build the admin page slug of a subpage.
+	 *
+	 * The slugs are prefixed with the plugin slug, so that generic ids such as
+	 * `settings` or `activity-log` do not collide with the pages of another
+	 * plugin. WordPress resolves `admin.php?page=` by slug alone, so a shared
+	 * slug makes one of the two pages unreachable.
 	 *
 	 * @since  1.0.0
 	 *
-	 * @return array The subpages id's array.
+	 * @param  string $id The subpage id.
+	 * @return string The admin page slug.
+	 */
+	public function get_subpage_slug( $id ) {
+		return \SG_AI_Studio\PLUGIN_SLUG . '-' . $id;
+	}
+
+	/**
+	 * Get the slugs of all pages registered by the plugin.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @return array The plugin page slugs.
 	 */
 	public function get_plugin_page_ids() {
-		return array(
-			'toplevel_page_sg-ai-studio',
-			'toplevel_page_sg-ai-studio-network',
-		);
+		$page_ids = array( \SG_AI_Studio\PLUGIN_SLUG );
+
+		foreach ( array_keys( $this->subpages ) as $id ) {
+			$page_ids[] = $this->get_subpage_slug( $id );
+		}
+
+		return $page_ids;
+	}
+
+	/**
+	 * Get the slug of the page being requested.
+	 *
+	 * WordPress sets the `plugin_page` global from the `page` query arg on
+	 * every admin.php request, so it is available before the current screen.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @return string The requested page slug, empty when there is none.
+	 */
+	public function get_requested_page_slug() {
+		return isset( $GLOBALS['plugin_page'] ) ? (string) $GLOBALS['plugin_page'] : '';
 	}
 
 	/**
@@ -41,8 +85,8 @@ class Admin {
 		if ( is_admin() && current_user_can( 'manage_options' ) ) {
 			if ( false !== $this->is_plugin_page() ) {
 				wp_enqueue_style(
-					'siteground-ai-studio-settings',
-					\SG_AI_Studio\URL . '/assets/css/settings.css',
+					'siteground-ai-studio-admin',
+					\SG_AI_Studio\URL . '/assets/css/admin.css',
 					array(),
 					\SG_AI_Studio\VERSION,
 					'all'
@@ -92,8 +136,8 @@ class Admin {
 		if ( false !== $this->is_plugin_page() ) {
 			// Enqueue the chat script.
 			wp_enqueue_script(
-				'siteground-ai-studio-settings',
-				\SG_AI_Studio\URL . '/assets/js/settings.js',
+				'siteground-ai-studio-admin',
+				\SG_AI_Studio\URL . '/assets/js/admin.js',
 				array( 'jquery' ),
 				\SG_AI_Studio\VERSION,
 				true
@@ -108,10 +152,12 @@ class Admin {
 			// Create i18n service instance.
 			$i18n_service = new i18n_Service( 'sg-ai-studio' );
 
-			// Localize the script with necessary data for settings page.
+			// Determine current page.
+			$current_page = $this->get_current_page();
+
 			wp_localize_script(
-				'siteground-ai-studio-settings',
-				'WPAIStudioSettingsConfig',
+				'siteground-ai-studio-admin',
+				'WPAIStudioAdminConfig',
 				array(
 					'config'       => array(
 						'home_url'      => get_home_url(),
@@ -123,8 +169,8 @@ class Admin {
 						'is_siteground' => \SG_AI_Studio\Helper\Helper::is_siteground(),
 						'wp_version'    => $wp_version,
 					),
-					'page'         => 'settings',
-					'domElementId' => 'wp-ai-studio-settings-container',
+					'page'         => $current_page,
+					'domElementId' => 'wp-ai-studio-admin-container',
 				)
 			);
 		}
@@ -289,6 +335,22 @@ class Admin {
 			array( $this, 'render' ),
 			\SG_AI_Studio\URL . '/assets/images/icon-20x20.svg'
 		);
+
+		// Show Settings and Activity Log subpages once the site is connected.
+		if ( ! (bool) get_option( 'sg_ai_studio_connected', false ) ) {
+			return;
+		}
+
+		foreach ( $this->subpages as $id => $title ) {
+			add_submenu_page(
+				\SG_AI_Studio\PLUGIN_SLUG,   // Parent slug.
+				__($title, 'sg-ai-studio'),
+				__($title, 'sg-ai-studio'),
+				'manage_options',
+				$this->get_subpage_slug( $id ),
+				array( $this, 'render' )
+			);
+		}
 	}
 
 	/**
@@ -335,12 +397,12 @@ class Admin {
 	public function render() {
 		$api_key = get_option( 'sg_ai_studio_api_key', '' );
 		wp_add_inline_script(
-			'siteground-ai-studio-settings',
-			'jQuery( document ).ready(function() {WPAIStudioSettings.init(WPAIStudioSettingsConfig);});',
+			'siteground-ai-studio-admin',
+			'jQuery( document ).ready(function() {WPAIStudioAdmin.init(WPAIStudioAdminConfig);});',
 			'after'
 		);
 		?>
-		<div id="wp-ai-studio-settings-container" class="sg-ai-settings <?php echo empty( $api_key ) ? 'no-api-key' : ''; ?>"></div>
+		<div id="wp-ai-studio-admin-container" class="sg-ai-admin <?php echo empty( $api_key ) ? 'no-api-key' : ''; ?>"></div>
 		<?php
 	}
 
@@ -356,13 +418,49 @@ class Admin {
 			return false;
 		}
 
-		$current_screen = get_current_screen();
+		return in_array( $this->get_requested_page_slug(), $this->get_plugin_page_ids(), true );
+	}
 
-		if ( in_array( $current_screen->id, $this->get_plugin_page_ids(), true ) ) {
-			return true;
+	/**
+	 * Get the current page slug.
+	 *
+	 * @since  1.0.0
+	 * @return string The current page slug.
+	 */
+	public function get_current_page() {
+		$page_slug = $this->get_requested_page_slug();
+
+		// Check if this is a subpage, and map the slug back to its id.
+		foreach ( array_keys( $this->subpages ) as $id ) {
+			if ( $this->get_subpage_slug( $id ) === $page_slug ) {
+				return $id;
+			}
 		}
 
-		return false;
+		// Default to 'dashboard' for the main page.
+		return 'sg-ai-studio';
+	}
+
+	/**
+	 * Reorder the submenu pages.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @param   array $menu_order The WP menu order.
+	 * @return  array The menu order.
+	 */
+	public function reorder_submenu_pages( $menu_order ) {
+		// Load the global submenu.
+		global $submenu;
+		if ( empty( $submenu['sg-ai-studio'] ) ) {
+			return $menu_order;
+		}
+
+		$submenu['sg-ai-studio'][0][0] = __( 'Dashboard', 'sg-ai-studio' );
+		$submenu['sg-ai-studio'][1][0] = __( 'Settings', 'sg-ai-studio' );
+		$submenu['sg-ai-studio'][2][0] = __( 'Activity & Usage', 'sg-ai-studio' );
+
+		return $menu_order;
 	}
 
 	/**
