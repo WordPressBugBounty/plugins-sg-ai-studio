@@ -939,6 +939,10 @@ msgstr ""
 "{{link}}wordpress.org{{/link}}. Condividere la tua esperienza aiuta gli "
 "altri utenti a decidere se è adatto a loro."
 
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:155
+msgid "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners."
+msgstr "Grazie per la valutazione! Lascia una recensione su {{link}}wordpress.org{{/link}} per condividere la tua esperienza con altri proprietari di siti web."
+
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:491
 msgid "Image deleted successfully."
 msgstr "Immagine eliminata con successo."
@@ -1132,7 +1136,7 @@ msgstr "Token non valido."
 
 #: /chroot/plugins/sg-ai-studio/core/Rest/Menus.php:1133
 msgid "Invalid type. Must be \"custom\" or \"post_type\"."
-msgstr "Tipo non valido. Deve essere \\\"custom\\\" o \\\"post_type\\\"."
+msgstr "Tipo non valido. Deve essere \"custom\" o \"post_type\"."
 
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:670
 #: /chroot/plugins/sg-ai-studio/core/Rest/Users.php:784
@@ -2411,6 +2415,3 @@ msgstr "Il tuo plugin è attivo e connesso: funge da ponte bidirezionale tra il 
 
 msgid "Use SiteGround AI for all WordPress AI features"
 msgstr "Utilizza SiteGround AI per tutte le funzionalità IA di WordPress"
-
-msgid "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners."
-msgstr "Grazie per la valutazione! Lascia una recensione su {{link}}wordpress.org{{/link}} per condividere la tua esperienza con altri proprietari di siti web."

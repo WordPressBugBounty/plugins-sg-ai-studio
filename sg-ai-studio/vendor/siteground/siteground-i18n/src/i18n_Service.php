@@ -128,8 +128,8 @@ class i18n_Service {
 
 		// Possible langugaes paths.
 		$dirs = array(
-			'wp-content/languages/plugins/',
 			'wp-content/plugins/' . $this->folder . '/languages/json/',
+			'wp-content/languages/plugins/',
 		);
 
 		foreach ( $dirs as $dir ) {

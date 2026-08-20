@@ -201,6 +201,7 @@ return array (
     'https://siteground.com' => 'https://siteground.com',
     'https://www.siteground.com' => 'https://www.siteground.com',
     'If the AI Agent was useful to you, please consider submitting a review on {{link}}wordpress.org{{/link}}. Sharing your experience helps other users decide if it\'s right for them.' => 'Se l\'agente AI ti è stato utile, considera di inviare una recensione su {{link}}wordpress.org{{/link}}. Condividere la tua esperienza aiuta gli altri utenti a decidere se è adatto a loro.',
+    'Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.' => 'Grazie per la valutazione! Lascia una recensione su {{link}}wordpress.org{{/link}} per condividere la tua esperienza con altri proprietari di siti web.',
     'Image deleted successfully.' => 'Immagine eliminata con successo.',
     'Image had been deleted' => 'L\'immagine è stata eliminata',
     'Image ID is required.' => 'È richiesto un documento di identità con il proprio nome.',
@@ -235,7 +236,7 @@ return array (
     'Invalid security token.' => 'Token di sicurezza non valido.',
     'Invalid tag ID.' => 'ID tag non valido.',
     'Invalid token.' => 'Token non valido.',
-    'Invalid type. Must be "custom" or "post_type".' => 'Tipo non valido. Deve essere \\"custom\\" o \\"post_type\\".',
+    'Invalid type. Must be "custom" or "post_type".' => 'Tipo non valido. Deve essere "custom" o "post_type".',
     'Invalid user ID.' => 'ID utente non valido.',
     'Invalid WooCommerce category ID.' => 'ID categoria WooCommerce non valido.',
     'Language Pack Update Failed: %s' => 'Aggiornamento del pacchetto lingua non riuscito: %s',
@@ -486,6 +487,5 @@ Se l’opzione è disattivata, non vedrai le funzionalità di modifica con IA di
     'Delegate entire processes to AI - build site architecture with menus, restructure taxonomies, run seasonal promotions, and other complex tasks. Manage your WordPress and WooCommerce sites through a simple chat with AI Agent by SiteGround.' => 'Delega interi processi all\'IA: crea l\'architettura del sito con i menu, ristruttura le tassonomie, organizza le promozioni stagionali e altre attività complesse. Gestisci i tuoi siti WordPress e WooCommerce tramite una semplice chat con AI Agent by SiteGround.',
     'Your plugin is active and connected - a two-way bridge between your WordPress site and SiteGround AI Studio.' => 'Il tuo plugin è attivo e connesso: funge da ponte bidirezionale tra il tuo sito WordPress e SiteGround AI Studio.',
     'Use SiteGround AI for all WordPress AI features' => 'Utilizza SiteGround AI per tutte le funzionalità IA di WordPress',
-    'Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.' => 'Grazie per la valutazione! Lascia una recensione su {{link}}wordpress.org{{/link}} per condividere la tua esperienza con altri proprietari di siti web.',
   ),
 );

@@ -903,6 +903,10 @@ msgid ""
 "decide if it's right for them."
 msgstr ""
 
+#: /chroot/plugins/sg-ai-studio/assets/react-strings.php:155
+msgid "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners."
+msgstr ""
+
 #: /chroot/plugins/sg-ai-studio/core/Rest/Gutenberg.php:491
 msgid "Image deleted successfully."
 msgstr ""
@@ -2313,7 +2317,4 @@ msgid "Your plugin is active and connected - a two-way bridge between your WordP
 msgstr ""
 
 msgid "Use SiteGround AI for all WordPress AI features"
-msgstr ""
-
-msgid "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners."
 msgstr ""

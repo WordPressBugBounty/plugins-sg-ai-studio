@@ -457,7 +457,7 @@
     "Failed to update provider connected status.": [
         "Impossible de mettre à jour l'état de connexion au fournisseur."
     ],
-    "Failed to update setting \\\"%s\\\".": [
+    "Failed to update setting \"%s\".": [
         "Échec de la mise à jour du paramètre « %s »."
     ],
     "Features": [
@@ -466,13 +466,13 @@
     "File claims to be an image but is not a valid image format.": [
         "Le fichier prétend être une image, mais n'est pas dans un format d'image valide."
     ],
-    "File contains forbidden extension \\\"%s\\\" in the filename. Executable files cannot be uploaded.": [
+    "File contains forbidden extension \"%s\" in the filename. Executable files cannot be uploaded.": [
         "Le nom du fichier contient l'extension interdite « %s ». Les fichiers exécutables ne peuvent pas être téléchargés."
     ],
-    "File content mismatch. File with extension \\\"%1$s\\\" has content type \\\"%2$s\\\" but expected one of: %3$s": [
+    "File content mismatch. File with extension \"%1$s\" has content type \"%2$s\" but expected one of: %3$s": [
         "Contenu du fichier incompatible. Le fichier avec l'extension « %1$s » a un type de contenu « %2$s » alors qu'il était attendu de type « %3$s »."
     ],
-    "File extension \\\"%s\\\" is not allowed.": [
+    "File extension \"%s\" is not allowed.": [
         "L'extension de fichier « %s » n'est pas autorisée."
     ],
     "File has been deleted": [
@@ -484,10 +484,10 @@
     "File Size up to: 20MB": [
         "Taille du fichier maximale : 20 Mo"
     ],
-    "File type \\\"%s\\\" is not allowed by WordPress.": [
+    "File type \"%s\" is not allowed by WordPress.": [
         "Le type de fichier « %s » n'est pas autorisé par WordPress."
     ],
-    "File type \\\"%s\\\" is not allowed for security reasons. Executable files cannot be uploaded.": [
+    "File type \"%s\" is not allowed for security reasons. Executable files cannot be uploaded.": [
         "Le type de fichier « %s » n'est pas autorisé pour des raisons de sécurité. Les fichiers exécutables ne peuvent pas être téléchargés."
     ],
     "Forbidden.": [
@@ -561,6 +561,9 @@
     ],
     "If the AI Agent was useful to you, please consider submitting a review on {{link}}wordpress.org{{/link}}. Sharing your experience helps other users decide if it's right for them.": [
         "Si l'agent IA vous a été utile, veuillez envisager de soumettre un avis sur {{link}}wordpress.org{{/link}}. Partager votre expérience aide les autres utilisateurs à décider si cela leur convient."
+    ],
+    "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.": [
+        "Merci pour votre évaluation ! Laissez un avis sur {{link}}wordpress.org{{/link}} pour partager votre expérience avec d'autres propriétaires de sites web."
     ],
     "Image deleted successfully.": [
         "Image supprimée avec succès."
@@ -664,8 +667,8 @@
     "Invalid token.": [
         "token invalide."
     ],
-    "Invalid type. Must be \\\"custom\\\" or \\\"post_type\\\".": [
-        "Type non valide. Doit être \\\\\\\"custom\\\\\\\" ou \\\\\\\"post_type\\\\\\\"."
+    "Invalid type. Must be \"custom\" or \"post_type\".": [
+        "Type non valide. Doit être \"custom\" ou \"post_type\"."
     ],
     "Invalid user ID.": [
         "Identifiant utilisateur invalide."
@@ -1063,16 +1066,16 @@
     "Server error: ": [
         "Erreur serveur :"
     ],
-    "Setting \\\"%s\\\" has been updated successfully.": [
+    "Setting \"%s\" has been updated successfully.": [
         "Le paramètre « %s » a été mis à jour avec succès."
     ],
-    "Setting \\\"%s\\\" is not allowed to be updated via this endpoint.": [
+    "Setting \"%s\" is not allowed to be updated via this endpoint.": [
         "La modification du paramètre « %s » n'est pas autorisée via ce point de terminaison."
     ],
     "Setting name cannot be empty.": [
         "Le nom du paramètre ne peut pas être vide."
     ],
-    "Setting Updated: %1$s (from \\\"%2$s\\\" to \\\"%3$s\\\")": [
+    "Setting Updated: %1$s (from \"%2$s\" to \"%3$s\")": [
         "Paramètre mis à jour : %1$s (de « %2$s » à « %3$s »)"
     ],
     "Settings": [
@@ -1279,8 +1282,8 @@
     "This conversation has grown too long. To continue, please start a new chat.": [
         "Cette conversation est trop longue. Pour continuer, veuillez ouvrir une nouvelle discussion."
     ],
-    "To protect your website from accidental or harmful changes, the AI Agent for WordPress includes a built-in safety option called \\\"Power Mode.\\\" Power Mode is disabled by default to ensure that high-impact actions cannot be executed accidentally. Actions that require you to enable Power Mode include deletions (users, posts, pages, files, etc.), bulk operations, global settings modifications, product, order, and price updates.": [
-        "Pour protéger votre site web contre les modifications accidentelles ou nuisibles, l’AI Agent pour WordPress intègre une option de sécurité appelée \\\"Power Mode\\\". Power Mode est désactivé par défaut afin d’éviter que des actions à fort impact soient exécutées accidentellement. Les actions nécessitant l’activation de Power Mode incluent les suppressions (utilisateurs, articles, pages, fichiers, etc.), les opérations groupées, les modifications des paramètres globaux ainsi que les mises à jour de produits, de commandes et de prix."
+    "To protect your website from accidental or harmful changes, the AI Agent for WordPress includes a built-in safety option called \"Power Mode.\" Power Mode is disabled by default to ensure that high-impact actions cannot be executed accidentally. Actions that require you to enable Power Mode include deletions (users, posts, pages, files, etc.), bulk operations, global settings modifications, product, order, and price updates.": [
+        "Pour protéger votre site web contre les modifications accidentelles ou nuisibles, l’AI Agent pour WordPress intègre une option de sécurité appelée \"Power Mode\". Power Mode est désactivé par défaut afin d’éviter que des actions à fort impact soient exécutées accidentellement. Les actions nécessitant l’activation de Power Mode incluent les suppressions (utilisateurs, articles, pages, fichiers, etc.), les opérations groupées, les modifications des paramètres globaux ainsi que les mises à jour de produits, de commandes et de prix."
     ],
     "Today": [
         "Aujourd'hui"
@@ -1413,8 +1416,5 @@
     ],
     "Use SiteGround AI for all WordPress AI features": [
         "Utilisez SiteGround AI pour toutes les fonctionnalités d'IA de WordPress"
-    ],
-    "Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.": [
-        "Merci pour votre évaluation ! Laissez un avis sur {{link}}wordpress.org{{/link}} pour partager votre expérience avec d'autres propriétaires de sites web."
     ]
 }

@@ -201,6 +201,7 @@ return array (
     'https://siteground.com' => 'https://siteground.com',
     'https://www.siteground.com' => 'https://www.siteground.com',
     'If the AI Agent was useful to you, please consider submitting a review on {{link}}wordpress.org{{/link}}. Sharing your experience helps other users decide if it\'s right for them.' => 'Wenn Ihnen der KI-Agent geholfen hat, hinterlassen Sie bitte eine Bewertung auf {{link}}wordpress.org{{/link}}. Ihre Erfahrungen helfen anderen Nutzern bei der Entscheidung, ob er für sie geeignet ist.',
+    'Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.' => 'Vielen Dank für die Bewertung! Hinterlassen Sie eine Rezension auf {{link}}wordpress.org{{/link}}, um Ihre Erfahrungen mit anderen Website-Betreibern zu teilen.',
     'Image deleted successfully.' => 'Bild erfolgreich gelöscht.',
     'Image had been deleted' => 'Das Bild wurde gelöscht',
     'Image ID is required.' => 'Eine Bild-ID ist erforderlich.',
@@ -235,7 +236,7 @@ return array (
     'Invalid security token.' => 'Ungültiges Sicherheitstoken.',
     'Invalid tag ID.' => 'Ungültige Tag-ID.',
     'Invalid token.' => 'Ungültiges Token.',
-    'Invalid type. Must be "custom" or "post_type".' => 'Ungültiger Typ. Muss \\"custom\\" oder \\"post_type\\" sein.',
+    'Invalid type. Must be "custom" or "post_type".' => 'Ungültiger Typ. Muss "custom" oder "post_type" sein.',
     'Invalid user ID.' => 'Ungültige Benutzer-ID.',
     'Invalid WooCommerce category ID.' => 'Ungültige WooCommerce-Kategorie-ID.',
     'Language Pack Update Failed: %s' => 'Sprachpaketaktualisierung fehlgeschlagen: %s',
@@ -485,6 +486,5 @@ return array (
     'Delegate entire processes to AI - build site architecture with menus, restructure taxonomies, run seasonal promotions, and other complex tasks. Manage your WordPress and WooCommerce sites through a simple chat with AI Agent by SiteGround.' => 'Delegieren Sie ganze Prozesse an die KI – erstellen Sie Website-Architekturen mit Menüs, strukturieren Sie Taxonomien neu, führen Sie saisonale Aktionen durch und erledigen Sie andere komplexe Aufgaben. Verwalten Sie Ihre WordPress- und WooCommerce-Websites ganz einfach per Chat mit AI Agent by SiteGround.',
     'Your plugin is active and connected - a two-way bridge between your WordPress site and SiteGround AI Studio.' => 'Ihr Plugin ist aktiv und verbunden – eine bidirektionale Brücke zwischen Ihrer WordPress-Website und SiteGround AI Studio.',
     'Use SiteGround AI for all WordPress AI features' => 'Nutzen Sie SiteGround AI für alle WordPress-KI-Funktionen',
-    'Thank you for the rating! Leave a review on {{link}}wordpress.org{{/link}} to share your experience with other website owners.' => 'Vielen Dank für Ihre Bewertung! Hinterlassen Sie eine Rezension auf {{link}}wordpress.org{{/link}}, um Ihre Erfahrungen mit anderen Website-Betreibern zu teilen.',
   ),
 );
