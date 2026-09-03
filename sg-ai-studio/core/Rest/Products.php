@@ -20,6 +20,8 @@ use SG_AI_Studio\Helper\Helper;
  * Handles REST API endpoints for WooCommerce product operations.
  */
 class Products extends Rest_Controller_Base {
+	use Object_Terms;
+
 	/**
 	 * REST API base
 	 *
@@ -55,7 +57,7 @@ class Products extends Rest_Controller_Base {
 					'callback'            => array( $this, 'get_products' ),
 					'permission_callback' => array( $this, 'list_permissions_check' ),
 					'args'                => $this->get_products_args(),
-					'description'         => 'Retrieves a list of WooCommerce products based on the provided filters.',
+					'description'         => 'Retrieves a list of WooCommerce products based on the provided filters. Pass embed_terms=true to also receive the named terms of every taxonomy on each product.',
 				),
 				'schema' => array( $this, 'get_product_schema' ),
 			)
@@ -71,13 +73,14 @@ class Products extends Rest_Controller_Base {
 					'callback'            => array( $this, 'get_product' ),
 					'permission_callback' => array( $this, 'read_permissions_check' ),
 					'args'                => array(
-						'id' => array(
+						'id'          => array(
 							'description' => 'Unique identifier for the product.',
 							'type'        => 'integer',
 							'required'    => true,
 						),
+						'embed_terms' => $this->get_embed_terms_arg(),
 					),
-					'description'         => 'Retrieves a specific WooCommerce product by ID.',
+					'description'         => 'Retrieves a specific WooCommerce product by ID. Pass embed_terms=true to also receive the named terms of every taxonomy on the product, including custom ones, instead of only product categories and tags.',
 				),
 				array(
 					'methods'             => 'POST',
@@ -103,6 +106,27 @@ class Products extends Rest_Controller_Base {
 			)
 		);
 
+		// Register endpoint for retrieving the variations of a variable product.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->base . '/(?P<id>[\d]+)/variations',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_product_variations' ),
+					'permission_callback' => array( $this, 'read_permissions_check' ),
+					'args'                => array(
+						'id' => array(
+							'description' => 'Unique identifier for the variable product.',
+							'type'        => 'integer',
+							'required'    => true,
+						),
+					),
+					'description'         => 'Retrieves every variation of a variable product with its own price, stock and attributes.',
+				),
+			)
+		);
+
 		// Register endpoint for bulk operations on products.
 		register_rest_route(
 			$this->namespace,
@@ -118,6 +142,9 @@ class Products extends Rest_Controller_Base {
 				'schema' => array( $this, 'get_batch_schema' ),
 			)
 		);
+
+		// Register endpoints for reading and assigning the terms of a product.
+		$this->register_object_terms_routes( $this->base, 'product' );
 	}
 
 	/**
@@ -305,6 +332,7 @@ class Products extends Rest_Controller_Base {
 	 */
 	protected function get_products_args() {
 		return array(
+			'embed_terms'  => $this->get_embed_terms_arg(),
 			'page'         => array(
 				'description'       => 'Current page of the collection.',
 				'type'              => 'integer',
@@ -368,6 +396,12 @@ class Products extends Rest_Controller_Base {
 				'description' => 'Limit result set to products with specified stock status.',
 				'type'        => 'string',
 				'enum'        => array( 'instock', 'outofstock', 'onbackorder' ),
+				'required'    => false,
+			),
+			'type'         => array(
+				'description' => 'Limit result set to products of a specific type.',
+				'type'        => 'string',
+				'enum'        => array( 'simple', 'variable', 'grouped', 'external' ),
 				'required'    => false,
 			),
 			'orderby'      => array(
@@ -475,6 +509,36 @@ class Products extends Rest_Controller_Base {
 				'price_html'         => array(
 					'description' => 'Price formatted in HTML.',
 					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'currency'           => array(
+					'description' => 'Store currency code.',
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'price_min'          => array(
+					'description' => 'Lowest price among the product\'s variations or children. Only for variable products and single reads of grouped products.',
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'price_max'          => array(
+					'description' => 'Highest price among the product\'s variations or children. Only for variable products and single reads of grouped products.',
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'regular_price_min'  => array(
+					'description' => 'Lowest regular price among the product\'s variations. Variable products only.',
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'regular_price_max'  => array(
+					'description' => 'Highest regular price among the product\'s variations. Variable products only.',
+					'type'        => 'string',
+					'readonly'    => true,
+				),
+				'price_is_range'     => array(
+					'description' => 'Whether the product spans a price range, meaning price_min and price_max differ.',
+					'type'        => 'boolean',
 					'readonly'    => true,
 				),
 				'on_sale'            => array(
@@ -680,6 +744,11 @@ class Products extends Rest_Controller_Base {
 						),
 					),
 				),
+				'terms'              => array(
+					'description' => 'Named terms assigned to the product, keyed by taxonomy slug. Present only when embed_terms=true was requested. A taxonomy with nothing assigned is an empty array.',
+					'type'        => 'object',
+					'readonly'    => true,
+				),
 				'images'             => array(
 					'description' => 'List of images.',
 					'type'        => 'array',
@@ -785,6 +854,25 @@ class Products extends Rest_Controller_Base {
 						'type' => 'integer',
 					),
 					'readonly'    => true,
+				),
+				'variation_ids'      => array(
+					'description' => 'IDs of the product\'s variations. Variable products only.',
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+					'readonly'    => true,
+				),
+				'variation_attributes' => array(
+					'description'          => 'Available option values per variation attribute, keyed by attribute name. Variable products only.',
+					'type'                 => 'object',
+					'additionalProperties' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type' => 'string',
+						),
+					),
+					'readonly'             => true,
 				),
 				'grouped_products'   => array(
 					'description' => 'List of grouped products ID.',
@@ -1044,6 +1132,10 @@ class Products extends Rest_Controller_Base {
 			$args['stock_status'] = $request['stock_status'];
 		}
 
+		if ( isset( $request['type'] ) && ! empty( $request['type'] ) ) {
+			$args['type'] = $request['type'];
+		}
+
 		$products       = \wc_get_products( $args );
 		$total_products = \wc_get_products(
 			array_merge(
@@ -1056,9 +1148,22 @@ class Products extends Rest_Controller_Base {
 		);
 		$total_products = count( $total_products );
 
+		$embed_terms = (bool) $request['embed_terms'];
+
+		// Prime the object term cache once so embedding terms is a single query, not one per product.
+		if ( $embed_terms && ! empty( $products ) ) {
+			$product_ids = array();
+
+			foreach ( $products as $product ) {
+				$product_ids[] = $product->get_id();
+			}
+
+			update_object_term_cache( $product_ids, 'product' );
+		}
+
 		$data = array();
 		foreach ( $products as $product ) {
-			$data[] = $this->prepare_product_for_response( $product, 'list' );
+			$data[] = $this->prepare_product_for_response( $product, 'list', $embed_terms );
 		}
 
 		$max_pages = ceil( $total_products / $request['per_page'] );
@@ -1100,12 +1205,80 @@ class Products extends Rest_Controller_Base {
 			);
 		}
 
-		$response = $this->prepare_product_for_response( $product );
+		$response = $this->prepare_product_for_response( $product, 'view', (bool) $request['embed_terms'] );
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
 				'data'    => $response,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get the variations of a variable product
+	 *
+	 * Returns every variation, including ones hidden from the parent's price range, so the
+	 * response can answer per variation stock and attribute questions.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function get_product_variations( $request ) {
+		$product = \wc_get_product( $request['id'] );
+
+		if ( ! $product ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'error'   => 'product_not_found',
+					'message' => __( 'Invalid product ID.', 'sg-ai-studio' ),
+				),
+				404
+			);
+		}
+
+		if ( ! $product->is_type( 'variable' ) ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'error'   => 'not_variable_product',
+					'message' => __( 'This product is not a variable product and has no variations.', 'sg-ai-studio' ),
+				),
+				400
+			);
+		}
+
+		$data = array();
+
+		foreach ( $product->get_children() as $variation_id ) {
+			$variation = \wc_get_product( $variation_id );
+
+			if ( ! $variation ) {
+				continue;
+			}
+
+			$data[] = array(
+				'id'             => $variation->get_id(),
+				'sku'            => $variation->get_sku(),
+				'price'          => $this->format_price( $variation->get_price() ),
+				'regular_price'  => $this->format_price( $variation->get_regular_price() ),
+				'sale_price'     => $this->format_price( $variation->get_sale_price() ),
+				'on_sale'        => $variation->is_on_sale(),
+				'stock_status'   => $variation->get_stock_status(),
+				'stock_quantity' => $variation->get_stock_quantity(),
+				'manage_stock'   => $variation->get_manage_stock(),
+				// Cast so a variation with no attributes serialises as `{}`, not `[]`.
+				'attributes'     => (object) $variation->get_attributes(),
+				'image_id'       => $variation->get_image_id(),
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $data,
 			),
 			200
 		);
@@ -1449,8 +1622,8 @@ class Products extends Rest_Controller_Base {
 				$errors[ $product_id ] = $response->get_data();
 			} else {
 				$results[ $product_id ] = array(
-					'id'      => $product_id,
-					'message' => $response->get_data()['message'],
+					'id'     => $product_id,
+					'status' => $response->get_data()['status'],
 				);
 			}
 		}
@@ -1532,12 +1705,13 @@ class Products extends Rest_Controller_Base {
 	/**
 	 * Prepare a product for the response
 	 *
-	 * @param \WC_Product $product Product object.
-	 * @param string      $context Request context: 'view' for single reads (full fidelity)
-	 *                             or 'list' for collection responses (heavy fields omitted).
+	 * @param \WC_Product $product     Product object.
+	 * @param string      $context     Request context: 'view' for single reads (full fidelity)
+	 *                                 or 'list' for collection responses (heavy fields omitted).
+	 * @param bool        $embed_terms Whether to add a named terms map for every taxonomy on the product.
 	 * @return array Prepared product data.
 	 */
-	protected function prepare_product_for_response( $product, $context = 'view' ) {
+	protected function prepare_product_for_response( $product, $context = 'view', $embed_terms = false ) {
 		$categories = array();
 		foreach ( $product->get_category_ids() as $category_id ) {
 			$category = get_term( $category_id, 'product_cat' );
@@ -1645,6 +1819,49 @@ class Products extends Rest_Controller_Base {
 			'menu_order'         => $product->get_menu_order(),
 		);
 
+		$data['currency'] = get_woocommerce_currency();
+
+		if ( $product->is_type( 'variable' ) ) {
+			$min = $product->get_variation_price( 'min' );
+			$max = $product->get_variation_price( 'max' );
+
+			// WooCommerce caches variation prices with the store's decimal precision while the
+			// parent's own _price meta is stored unpadded, so re-format both to one format.
+			$data['price']         = $this->format_price( $data['price'] );
+			$data['regular_price'] = $this->format_price( $data['regular_price'] );
+			$data['sale_price']    = $this->format_price( $data['sale_price'] );
+
+			$data['price_min']         = $this->format_price( $min );
+			$data['price_max']         = $this->format_price( $max );
+			$data['regular_price_min'] = $this->format_price( $product->get_variation_regular_price( 'min' ) );
+			$data['regular_price_max'] = $this->format_price( $product->get_variation_regular_price( 'max' ) );
+			$data['price_is_range']    = ( $min !== $max );
+			$data['variation_ids']     = $product->get_children();
+
+			// array_values() keeps every option list a JSON array: WooCommerce builds these with
+			// array_unique(), which preserves keys and would otherwise serialise as an object.
+			// The map itself is cast to an object so it stays `{}` rather than `[]` when empty.
+			$attributes = array();
+			foreach ( $product->get_variation_attributes() as $name => $values ) {
+				$attributes[ $name ] = array_values( $values );
+			}
+			$data['variation_attributes'] = (object) $attributes;
+		}
+
+		if ( $product->is_type( 'grouped' ) ) {
+			$data['grouped_products'] = $product->get_children();
+
+			// A grouped parent carries no price of its own, so the range costs one load per
+			// child. Single reads only, to keep collection responses cheap.
+			if ( 'view' === $context ) {
+				$data = array_merge( $data, $this->get_grouped_price_range( $product ) );
+			}
+		}
+
+		if ( $embed_terms ) {
+			$data['terms'] = $this->get_object_terms_map( $product->get_id(), 'product' );
+		}
+
 		// Omit heavy fields in list context to keep collection responses small.
 		// Single reads (context 'view') retain full content.
 		if ( 'list' === $context ) {
@@ -1652,5 +1869,72 @@ class Products extends Rest_Controller_Base {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Normalize a price value to the store's decimal precision.
+	 *
+	 * WooCommerce stores a variable parent's `_price` unpadded ("45") but caches its variation
+	 * prices through `wc_format_decimal( $price, wc_get_price_decimals() )` ("45.00"), so the
+	 * same amount can reach the response in two formats. Empty values are passed through as an
+	 * empty string: `get_variation_price()` returns false when no variation carries a price, and
+	 * `wc_format_decimal( false, 2 )` would report that as "0.00".
+	 *
+	 * @param string|float|bool|null $value Raw price value.
+	 * @return string The formatted price, or an empty string when there is no price.
+	 */
+	private function format_price( $value ) {
+		if ( '' === $value || null === $value || false === $value ) {
+			return '';
+		}
+
+		return wc_format_decimal( $value, wc_get_price_decimals() );
+	}
+
+	/**
+	 * Build the price range of a grouped product from its children.
+	 *
+	 * @param \WC_Product $product Grouped product object.
+	 * @return array Price range fields: price_min, price_max and price_is_range.
+	 */
+	private function get_grouped_price_range( $product ) {
+		$children = $product->get_children();
+		$prices   = array();
+
+		if ( ! empty( $children ) ) {
+			$child_products = \wc_get_products(
+				array(
+					'include' => $children,
+					'limit'   => -1,
+				)
+			);
+
+			foreach ( $child_products as $child ) {
+				$price = $child->get_price();
+
+				if ( '' === $price || null === $price ) {
+					continue;
+				}
+
+				$prices[] = (float) $price;
+			}
+		}
+
+		if ( empty( $prices ) ) {
+			return array(
+				'price_min'      => '',
+				'price_max'      => '',
+				'price_is_range' => false,
+			);
+		}
+
+		$min = $this->format_price( min( $prices ) );
+		$max = $this->format_price( max( $prices ) );
+
+		return array(
+			'price_min'      => $min,
+			'price_max'      => $max,
+			'price_is_range' => ( $min !== $max ),
+		);
 	}
 }

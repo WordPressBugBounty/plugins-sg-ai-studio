@@ -29,7 +29,11 @@ use SG_AI_Studio\Rest\Activity_Log;
 use SG_AI_Studio\Rest\Core;
 use SG_AI_Studio\Rest\Gutenberg;
 use SG_AI_Studio\Rest\Post_Types;
+use SG_AI_Studio\Rest\Taxonomies;
+use SG_AI_Studio\Rest\Terms;
 use SG_AI_Studio\Rest\Menus;
+use SG_AI_Studio\Rest\Site_Snapshot;
+use SG_AI_Studio\Rest\Entity;
 
 /**
  * Handles custom REST API endpoints.
@@ -184,11 +188,39 @@ class Rest extends Rest_Controller_Base {
 	private $post_types;
 
 	/**
+	 * Taxonomies API instance
+	 *
+	 * @var Taxonomies
+	 */
+	private $taxonomies;
+
+	/**
+	 * Terms API instance
+	 *
+	 * @var Terms
+	 */
+	private $terms;
+
+	/**
 	 * Menus API instance
 	 *
 	 * @var Menus
 	 */
 	private $menus;
+
+	/**
+	 * Site Snapshot API instance
+	 *
+	 * @var Site_Snapshot
+	 */
+	private $site_snapshot;
+
+	/**
+	 * Entity API instance
+	 *
+	 * @var Entity
+	 */
+	private $entity;
 
 	/**
 	 * Constructor
@@ -209,7 +241,11 @@ class Rest extends Rest_Controller_Base {
 		$this->core          = new Core();
 		$this->gutenberg     = new Gutenberg();
 		$this->post_types    = new Post_Types();
+		$this->taxonomies    = new Taxonomies();
+		$this->terms         = new Terms();
 		$this->menus         = new Menus();
+		$this->site_snapshot = new Site_Snapshot();
+		$this->entity        = new Entity();
 
 		// Only initialize WooCommerce endpoints if WooCommerce is active.
 		if ( function_exists( 'is_plugin_active' ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
@@ -274,8 +310,20 @@ class Rest extends Rest_Controller_Base {
 		// Register post types endpoints.
 		$this->post_types->register_rest_routes();
 
+		// Register taxonomy discovery endpoints.
+		$this->taxonomies->register_rest_routes();
+
+		// Register term management endpoints for any REST visible taxonomy.
+		$this->terms->register_rest_routes();
+
 		// Register menu management endpoints.
 		$this->menus->register_rest_routes();
+
+		// Register site snapshot endpoint.
+		$this->site_snapshot->register_rest_routes();
+
+		// Register entity endpoint.
+		$this->entity->register_rest_routes();
 
 		// Register WooCommerce endpoints if WooCommerce is active.
 		if ( class_exists( 'WooCommerce' ) ) {

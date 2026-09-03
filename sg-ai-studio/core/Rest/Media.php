@@ -1355,7 +1355,7 @@ class Media extends Rest_Controller_Base {
 			if ( $response->is_error() || ! $response->get_data()['success'] ) {
 				$errors[ $media_id ] = $response->get_data();
 			} else {
-				$results[ $media_id ] = $response->get_data()['message'];
+				$results[ $media_id ] = $response->get_data()['status'];
 			}
 		}
 

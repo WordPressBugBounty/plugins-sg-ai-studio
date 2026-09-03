@@ -1416,5 +1416,44 @@
     ],
     "Use SiteGround AI for all WordPress AI features": [
         "Utiliza SiteGround AI para todas las funciones de IA de WordPress"
+    ],
+    "Add more tokens": [
+        "Añadir más tokens"
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the MANAGE button.": [
+        "AI Agent utiliza SiteGround AI Tokens. Para ver las fechas de restablecimiento de los AI Tokens o añadir más tokens, haz clic en el botón Gestionar."
+    ],
+    "Full Screen": [
+        "Pantalla completa"
+    ],
+    "Manage AI Tokens": [
+        "Gestionar AI Tokens"
+    ],
+    "Nothing here yet": [
+        "Aún no hay nada aquí"
+    ],
+    "Popover": [
+        "Ventana emergente"
+    ],
+    "Sidebar": [
+        "Barra lateral"
+    ],
+    "View mode": [
+        "Modo de vista"
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Add More Tokens button.": [
+        "AI Agent utiliza SiteGround AI Tokens. Para ver las fechas de restablecimiento de los AI Tokens o añadir más tokens, haz clic en el botón Añadir más tokens."
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Manage AI Tokens button.": [
+        "AI Agent utiliza SiteGround AI Tokens. Para ver las fechas de restablecimiento de los AI Tokens o añadir más tokens, haz clic en el botón Gestionar AI Tokens."
+    ],
+    "and connect the plugin via a unique token. Websites hosted on SiteGround platform will be connected automatically.": [
+        "y conectar el plugin mediante un token único. Los sitios web alojados en la plataforma de SiteGround se conectarán automáticamente."
+    ],
+    "SiteGround AI Studio service": [
+        "el servicio SiteGround AI Studio"
+    ],
+    "To activate the plugin, you need to sign up for": [
+        "Para activar el plugin, tienes que registrarte en"
     ]
 }

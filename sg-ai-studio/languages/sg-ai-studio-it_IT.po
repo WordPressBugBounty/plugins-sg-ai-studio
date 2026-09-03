@@ -2415,3 +2415,42 @@ msgstr "Il tuo plugin è attivo e connesso: funge da ponte bidirezionale tra il 
 
 msgid "Use SiteGround AI for all WordPress AI features"
 msgstr "Utilizza SiteGround AI per tutte le funzionalità IA di WordPress"
+
+msgid "Add more tokens"
+msgstr "Aggiungi altri token"
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the MANAGE button."
+msgstr "AI Agent utilizza i SiteGround AI Tokens. Per vedere le date di azzeramento degli AI Tokens o aggiungere altri token, fai clic sul pulsante Gestisci."
+
+msgid "Full Screen"
+msgstr "Schermo intero"
+
+msgid "Manage AI Tokens"
+msgstr "Gestisci AI Tokens"
+
+msgid "Nothing here yet"
+msgstr "Non c'è ancora niente qui"
+
+msgid "Popover"
+msgstr "Popover"
+
+msgid "Sidebar"
+msgstr "Barra laterale"
+
+msgid "View mode"
+msgstr "Modalità di visualizzazione"
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Add More Tokens button."
+msgstr "AI Agent utilizza i SiteGround AI Tokens. Per vedere le date di azzeramento degli AI Tokens o aggiungere altri token, fai clic sul pulsante Aggiungi altri token."
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Manage AI Tokens button."
+msgstr "AI Agent utilizza i SiteGround AI Tokens. Per vedere le date di azzeramento degli AI Tokens o aggiungere altri token, fai clic sul pulsante Gestisci AI Tokens."
+
+msgid "and connect the plugin via a unique token. Websites hosted on SiteGround platform will be connected automatically."
+msgstr "e collegare il plugin tramite un token univoco. I siti web ospitati sulla piattaforma SiteGround verranno collegati automaticamente."
+
+msgid "SiteGround AI Studio service"
+msgstr "servizio SiteGround AI Studio"
+
+msgid "To activate the plugin, you need to sign up for"
+msgstr "Per attivare il plugin, devi registrarti al"

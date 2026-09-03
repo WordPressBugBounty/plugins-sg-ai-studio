@@ -2318,3 +2318,42 @@ msgstr ""
 
 msgid "Use SiteGround AI for all WordPress AI features"
 msgstr ""
+
+msgid "Add more tokens"
+msgstr ""
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the MANAGE button."
+msgstr ""
+
+msgid "Full Screen"
+msgstr ""
+
+msgid "Manage AI Tokens"
+msgstr ""
+
+msgid "Nothing here yet"
+msgstr ""
+
+msgid "Popover"
+msgstr ""
+
+msgid "Sidebar"
+msgstr ""
+
+msgid "View mode"
+msgstr ""
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Add More Tokens button."
+msgstr ""
+
+msgid "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Manage AI Tokens button."
+msgstr ""
+
+msgid "and connect the plugin via a unique token. Websites hosted on SiteGround platform will be connected automatically."
+msgstr ""
+
+msgid "SiteGround AI Studio service"
+msgstr ""
+
+msgid "To activate the plugin, you need to sign up for"
+msgstr ""

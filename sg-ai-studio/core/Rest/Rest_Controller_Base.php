@@ -81,6 +81,22 @@ abstract class Rest_Controller_Base {
 	}
 
 	/**
+	 * Purge the site caches after a write.
+	 *
+	 * Wraps the SiteGround Speed Optimizer purge when that plugin is active and
+	 * always flushes the object cache, so callers do not repeat the guard.
+	 *
+	 * @return void
+	 */
+	protected function purge_caches() {
+		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
+			\sg_cachepress_purge_cache();
+		}
+
+		\wp_cache_flush();
+	}
+
+	/**
 	 * Parse the `_fields` query parameter into a normalized list of field names.
 	 *
 	 * Only top-level field selection is supported, so any dot-notation field

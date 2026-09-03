@@ -1436,7 +1436,7 @@ class Helper {
 	 * @return bool True if value is true, 'true', or 1, false otherwise.
 	 */
 	public static function validate_force_param( $value ) {
-		return $value === true || $value === 'true' || $value === 1;
+		return $value === true || $value === 'true' || $value === 1 || $value === 'True';
 	}
 
 	/**

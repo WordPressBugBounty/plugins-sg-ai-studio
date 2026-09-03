@@ -1155,7 +1155,7 @@ class Comments extends Rest_Controller_Base {
 			if ( $response->is_error() || ! $response->get_data()['success'] ) {
 				$errors[ $comment_id ] = $response->get_data();
 			} else {
-				$results[ $comment_id ] = $response->get_data()['message'];
+				$results[ $comment_id ] = $response->get_data()['status'];
 			}
 		}
 

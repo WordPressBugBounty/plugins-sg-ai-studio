@@ -1416,5 +1416,44 @@
     ],
     "Use SiteGround AI for all WordPress AI features": [
         "Nutzen Sie SiteGround AI für alle WordPress-KI-Funktionen"
+    ],
+    "Add more tokens": [
+        "Tokens hinzufügen"
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the MANAGE button.": [
+        "AI Agent verwendet SiteGround AI Tokens. Um die Zurücksetzungsdaten der AI Tokens anzuzeigen oder weitere Tokens hinzuzufügen, klicken Sie auf die Schaltfläche Verwalten."
+    ],
+    "Full Screen": [
+        "Vollbild"
+    ],
+    "Manage AI Tokens": [
+        "AI Tokens verwalten"
+    ],
+    "Nothing here yet": [
+        "Hier ist noch nichts"
+    ],
+    "Popover": [
+        "Popover"
+    ],
+    "Sidebar": [
+        "Seitenleiste"
+    ],
+    "View mode": [
+        "Ansichtsmodus"
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Add More Tokens button.": [
+        "AI Agent verwendet SiteGround AI Tokens. Um die Zurücksetzungsdaten der AI Tokens anzuzeigen oder weitere Tokens hinzuzufügen, klicken Sie auf die Schaltfläche Tokens hinzufügen."
+    ],
+    "AI Agent uses SiteGround AI Tokens. To see AI Tokens reset date(s) or add more tokens click the Manage AI Tokens button.": [
+        "AI Agent verwendet SiteGround AI Tokens. Um die Zurücksetzungsdaten der AI Tokens anzuzeigen oder weitere Tokens hinzuzufügen, klicken Sie auf die Schaltfläche AI Tokens verwalten."
+    ],
+    "and connect the plugin via a unique token. Websites hosted on SiteGround platform will be connected automatically.": [
+        "registrieren und das Plugin über einen eindeutigen Token verbinden. Websites, die auf der SiteGround-Plattform gehostet werden, werden automatisch verbunden."
+    ],
+    "SiteGround AI Studio service": [
+        "den SiteGround AI Studio Service"
+    ],
+    "To activate the plugin, you need to sign up for": [
+        "Um das Plugin zu aktivieren, müssen Sie sich für"
     ]
 }

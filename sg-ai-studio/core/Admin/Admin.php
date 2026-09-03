@@ -232,6 +232,16 @@ class Admin {
 			// Derive the current page context (re-derived on every load, never cached).
 			$page_context = Helper::get_page_context();
 
+			// One-shot server flag to force-open the chat bubble on this load, overriding the
+			// client-side localStorage minimized state. Armed on-demand during a fleet rollout.
+			// Skip in the editor, where the bubble is intentionally kept minimized, so the arming
+			// is not consumed on a load that would not open. Cleared once read so it fires exactly
+			// once per arming (see WPAITOOLS-73).
+			$force_open_chat = ! $is_editor && (bool) get_option( 'sg_ai_studio_force_open_chat', false );
+			if ( $force_open_chat ) {
+				delete_option( 'sg_ai_studio_force_open_chat' );
+			}
+
 			// Localize the script with necessary data.
 			$localized_data = array(
 				'config'       => array(
@@ -245,6 +255,7 @@ class Admin {
 					'is_staging'       => Helper::is_staging_environment(),
 					'welcome_msg'      => $welcome_message_string,
 					'minimizeOverride' => $is_editor,
+					'forceOpenChat'    => $force_open_chat,
 					'plugin_version'   => \SG_AI_Studio\VERSION,
 					'wp_version'    => $wp_version,
 					'chat_bubble_admin_hidden' => (bool) get_option( 'sg_ai_studio_chat_bubble_admin_hidden', false ),

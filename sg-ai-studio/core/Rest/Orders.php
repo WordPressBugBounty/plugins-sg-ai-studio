@@ -1858,8 +1858,8 @@ class Orders extends Rest_Controller_Base {
 				$errors[ $order_id ] = $response->get_data();
 			} else {
 				$results[ $order_id ] = array(
-					'id'      => $order_id,
-					'message' => $response->get_data()['message'],
+					'id'     => $order_id,
+					'status' => $response->get_data()['status'],
 				);
 			}
 		}
