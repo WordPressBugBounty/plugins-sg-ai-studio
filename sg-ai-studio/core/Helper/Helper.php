@@ -1540,6 +1540,20 @@ class Helper {
 	}
 
 	/**
+	 * Purge all caches (SiteGround Cache + WordPress object cache)
+	 *
+	 * @return void
+	 */
+	public static function purge_caches() {
+		if ( function_exists( '\sg_cachepress_purge_cache' ) ) {
+			\sg_cachepress_purge_cache();
+			\wp_cache_flush();
+		} else {
+			\wp_cache_flush();
+		}
+	}
+
+	/**
 	 * Process chat request for Gutenberg blocks (preserves block markup)
 	 * This is an extension of process_chat_request specifically for Gutenberg block generation
 	 * that skips aggressive HTML cleanup to preserve block structure.

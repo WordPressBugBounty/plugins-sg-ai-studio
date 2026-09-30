@@ -345,12 +345,7 @@ class Menus extends Rest_Controller_Base {
 			Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'FSE Navigation Created: %1$s (ID: %2$d)', 'sg-ai-studio' ), $nav->post_title, $nav_id ) );
 
 			// Clear all caches.
-			if( \function_exists('\sg_cachepress_purge_cache') ) {
-				\sg_cachepress_purge_cache();
-				\wp_cache_flush();
-			} else {
-				\wp_cache_flush();
-			}
+			Helper::purge_caches();
 
 			return new WP_REST_Response(
 				array(
@@ -397,12 +392,7 @@ class Menus extends Rest_Controller_Base {
 			Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Created: %1$s (ID: %2$d)', 'sg-ai-studio' ), $menu->name, $menu_id ) );
 
 			// Clear all caches.
-			if( \function_exists('\sg_cachepress_purge_cache') ) {
-				\sg_cachepress_purge_cache();
-				\wp_cache_flush();
-			} else {
-				\wp_cache_flush();
-			}
+			Helper::purge_caches();
 
 			return new WP_REST_Response(
 				array(
@@ -473,12 +463,7 @@ class Menus extends Rest_Controller_Base {
 			Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'FSE Navigation Deleted: %1$s (ID: %2$d)', 'sg-ai-studio' ), $nav_name, $menu_id ) );
 
 			// Clear all caches.
-			if( \function_exists('\sg_cachepress_purge_cache') ) {
-				\sg_cachepress_purge_cache();
-				\wp_cache_flush();
-			} else {
-				\wp_cache_flush();
-			}
+			Helper::purge_caches();
 
 			return new WP_REST_Response(
 				array(
@@ -521,12 +506,7 @@ class Menus extends Rest_Controller_Base {
 			Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Deleted: %1$s (ID: %2$d)', 'sg-ai-studio' ), $menu_name, $menu_id ) );
 
 			// Clear all caches.
-			if( \function_exists('\sg_cachepress_purge_cache') ) {
-				\sg_cachepress_purge_cache();
-				\wp_cache_flush();
-			} else {
-				\wp_cache_flush();
-			}
+			Helper::purge_caches();
 
 			return new WP_REST_Response(
 				array(
@@ -1058,12 +1038,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Navigation Item Added: %1$s to %2$s', 'sg-ai-studio' ), $title, $nav->post_title ) );
 
 		// Clear all caches.
-		if ( \function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1186,12 +1161,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Item Added: %1$s to menu %2$s', 'sg-ai-studio' ), $item->title, $menu->name ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1339,12 +1309,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Navigation Item Deleted: %s', 'sg-ai-studio' ), $deleted_label ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1395,12 +1360,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Item Deleted: %s', 'sg-ai-studio' ), $item_title ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1593,12 +1553,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Navigation Item Updated: %s', 'sg-ai-studio' ), $updated_label ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1720,12 +1675,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Item Updated: %s', 'sg-ai-studio' ), $updated_item->title ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(
@@ -1846,12 +1796,7 @@ class Menus extends Rest_Controller_Base {
 		Activity_Log_Helper::add_log_entry( 'Menus', sprintf( __( 'Menu Assigned: %1$s to location %2$s', 'sg-ai-studio' ), $menu_name, $location ) );
 
 		// Clear all caches.
-		if( \function_exists('\sg_cachepress_purge_cache') ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
-		}
+		Helper::purge_caches();
 
 		return new WP_REST_Response(
 			array(

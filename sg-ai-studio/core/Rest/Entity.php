@@ -264,20 +264,22 @@ class Entity extends Rest_Controller_Base {
 			return new \WP_Error( 'not_found', __( 'Template not found.', 'sg-ai-studio' ) );
 		}
 
-		$content  = $template->content;
-		$modified = $this->get_template_modified_date( $template );
-		$etag     = $this->generate_etag( $content, $modified );
+		$content      = $template->content;
+		$raw_modified = $this->get_template_modified_date( $template );
+		$etag         = $this->generate_etag( $content, $raw_modified );
+		$modified     = $raw_modified ? mysql_to_rfc3339( $raw_modified ) : null;
 
 		// Parse and clean blocks.
-		$parsed_blocks = parse_blocks( $content );
+		$parsed_blocks  = parse_blocks( $content );
 		$cleaned_blocks = $this->clean_blocks( $parsed_blocks );
 
 		return array(
-			'type'     => $type === 'wp_template' ? 'template' : 'template_part',
+			'type'     => 'wp_template' === $type ? 'template' : 'template_part',
 			'id'       => $template->id,
 			'title'    => $template->title,
 			'slug'     => $template->slug,
 			'status'   => isset( $template->status ) ? $template->status : 'publish',
+			'source'   => $template->source,
 			'modified' => $modified,
 			'etag'     => $etag,
 			'blocks'   => $cleaned_blocks,
@@ -285,17 +287,17 @@ class Entity extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Get modified date for template
+	 * Get raw modified date for template
 	 *
 	 * @param object $template Template object.
-	 * @return string|null Modified date in RFC3339 format or null.
+	 * @return string|null Raw MySQL modified datetime, or null for theme-based templates.
 	 */
 	private function get_template_modified_date( $template ) {
 		// Check if template is customized (stored in database).
 		if ( 'custom' === $template->source ) {
 			$template_post = get_page_by_path( $template->slug, OBJECT, $template->type );
 			if ( $template_post ) {
-				return mysql_to_rfc3339( $template_post->post_modified );
+				return $template_post->post_modified;
 			}
 		}
 
@@ -319,7 +321,7 @@ class Entity extends Rest_Controller_Base {
 	}
 
 	/**
-	 * Recursively clean blocks, removing innerHTML and innerContent
+	 * Recursively clean blocks, keeping the fields needed to read and edit content
 	 *
 	 * Public so Entity_Patch can return the same block shape from PATCH as
 	 * this endpoint returns from GET.
@@ -337,9 +339,11 @@ class Entity extends Rest_Controller_Base {
 			}
 
 			$cleaned_block = array(
-				'blockName'   => $block['blockName'],
-				'attrs'       => isset( $block['attrs'] ) ? $block['attrs'] : array(),
-				'innerBlocks' => array(),
+				'blockName'    => $block['blockName'],
+				'attrs'        => isset( $block['attrs'] ) ? $block['attrs'] : array(),
+				'innerHTML'    => isset( $block['innerHTML'] ) ? $block['innerHTML'] : '',
+				'innerContent' => isset( $block['innerContent'] ) ? $block['innerContent'] : array(),
+				'innerBlocks'  => array(),
 			);
 
 			// Recursively clean nested blocks.

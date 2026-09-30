@@ -34,6 +34,7 @@ use SG_AI_Studio\Rest\Terms;
 use SG_AI_Studio\Rest\Menus;
 use SG_AI_Studio\Rest\Site_Snapshot;
 use SG_AI_Studio\Rest\Entity;
+use SG_AI_Studio\Rest\Template_Parts;
 
 /**
  * Handles custom REST API endpoints.
@@ -223,6 +224,13 @@ class Rest extends Rest_Controller_Base {
 	private $entity;
 
 	/**
+	 * Template Parts API instance
+	 *
+	 * @var Template_Parts
+	 */
+	private $template_parts;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -246,6 +254,7 @@ class Rest extends Rest_Controller_Base {
 		$this->menus         = new Menus();
 		$this->site_snapshot = new Site_Snapshot();
 		$this->entity        = new Entity();
+		$this->template_parts = new Template_Parts();
 
 		// Only initialize WooCommerce endpoints if WooCommerce is active.
 		if ( function_exists( 'is_plugin_active' ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
@@ -324,6 +333,9 @@ class Rest extends Rest_Controller_Base {
 
 		// Register entity endpoint.
 		$this->entity->register_rest_routes();
+
+		// Register template parts endpoint.
+		$this->template_parts->register_rest_routes();
 
 		// Register WooCommerce endpoints if WooCommerce is active.
 		if ( class_exists( 'WooCommerce' ) ) {

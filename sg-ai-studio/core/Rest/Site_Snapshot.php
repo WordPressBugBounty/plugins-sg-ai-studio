@@ -24,6 +24,28 @@ class Site_Snapshot extends Rest_Controller_Base {
 	private $base = 'site-snapshot';
 
 	/**
+	 * Navigation block types that count as menu items in FSE navigation
+	 *
+	 * Must stay synchronized with the list in Menus::parse_navigation_blocks().
+	 *
+	 * @var array
+	 */
+	private $nav_block_types = array(
+		'core/navigation-link',
+		'core/navigation-submenu',
+		'core/page-list',
+		'core/home-link',
+		'core/loginout',
+		'core/search',
+		'core/social-links',
+		'core/spacer',
+		'core/icon',
+		'core/site-title',
+		'core/site-logo',
+		'core/buttons',
+	);
+
+	/**
 	 * Register REST API routes
 	 *
 	 * @return void
@@ -119,7 +141,80 @@ class Site_Snapshot extends Rest_Controller_Base {
 			'has_theme_json' => function_exists( 'wp_theme_has_theme_json' ) && wp_theme_has_theme_json(),
 			// Reserved for Site Editor / template work, not the block editing gate.
 			'is_block_theme' => function_exists( 'wp_is_block_theme' ) && wp_is_block_theme(),
+			'page_builder'   => $this->detect_page_builder( $theme, $parent ),
 		);
+	}
+
+	/**
+	 * Detect which page builder is active on the site
+	 *
+	 * Detects from active plugins and theme. Returns 'none' explicitly when
+	 * no builder is detected (not null/absent), so the agent can distinguish
+	 * "no builder" from "not reported".
+	 *
+	 * Check order prioritizes the most common builders first for performance.
+	 *
+	 * @param \WP_Theme      $theme  Active theme object.
+	 * @param \WP_Theme|bool $parent Parent theme object or false if no parent.
+	 * @return string The page builder slug or 'none'.
+	 */
+	private function detect_page_builder( $theme, $parent ) {
+		// Elementor - most popular, check first.
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			return 'elementor';
+		}
+
+		// Get theme names once.
+		$theme_name   = $theme->get( 'Name' );
+		$parent_name  = $parent ? $parent->get( 'Name' ) : '';
+
+		// Divi - check theme or builder plugin.
+		if ( 'Divi' === $theme_name || 'Divi' === $parent_name || 'Extra' === $theme_name || 'Extra' === $parent_name ) {
+			return 'divi';
+		}
+
+		// Divi Builder plugin (standalone).
+		if ( function_exists( 'et_divi_fonts_url' ) ) {
+			return 'divi';
+		}
+
+		// WPBakery - very common, check early.
+		if ( class_exists( '\Vc_Manager' ) || function_exists( 'vc_is_inline' ) ) {
+			return 'wpbakery';
+		}
+
+		// Avada/Fusion - popular theme.
+		if ( 'Avada' === $theme_name || 'Avada' === $parent_name ) {
+			return 'avada';
+		}
+
+		// Beaver Builder.
+		if ( class_exists( '\FLBuilder' ) || class_exists( '\FLBuilderModel' ) ) {
+			return 'beaver-builder';
+		}
+
+		// Bricks - growing in popularity.
+		if ( 'Bricks' === $theme_name || 'Bricks' === $parent_name ) {
+			return 'bricks';
+		}
+
+		// Oxygen - check constant first (more reliable).
+		if ( defined( 'CT_VERSION' ) || function_exists( 'oxygen_vsb_init' ) ) {
+			return 'oxygen';
+		}
+
+		// Thrive Architect.
+		if ( function_exists( 'tve_in_architect' ) ) {
+			return 'thrive-architect';
+		}
+
+		// Cornerstone (ThemeCo).
+		if ( function_exists( 'cornerstone_is_permalink_endpoint' ) ) {
+			return 'cornerstone';
+		}
+
+		// No page builder detected.
+		return 'none';
 	}
 
 	/**
@@ -177,19 +272,7 @@ class Site_Snapshot extends Rest_Controller_Base {
 			$tokens['duotones'] = $settings['color']['duotone']['theme'];
 		}
 
-		if ( isset( $settings['typography']['fontFamilies']['theme'] ) ) {
-			// Slug + name only: the agent references fonts by slug, so the
-			// fontFamily/fontFace/src payload is dead weight.
-			$tokens['font_families'] = array_map(
-				static function ( $font ) {
-					return array(
-						'slug' => isset( $font['slug'] ) ? $font['slug'] : null,
-						'name' => isset( $font['name'] ) ? $font['name'] : null,
-					);
-				},
-				$settings['typography']['fontFamilies']['theme']
-			);
-		}
+		$tokens['font_families'] = $this->get_font_families( $settings );
 
 		if ( isset( $settings['typography']['fontSizes']['theme'] ) ) {
 			$tokens['font_sizes'] = $settings['typography']['fontSizes']['theme'];
@@ -208,6 +291,193 @@ class Site_Snapshot extends Rest_Controller_Base {
 		}
 
 		return $tokens;
+	}
+
+	/**
+	 * Get font families declared by the theme and the Font Library
+	 *
+	 * Faces carry src and weight, so the agent can tell local fonts from
+	 * externally loaded ones.
+	 *
+	 * @param array $settings Theme.json settings.
+	 * @return array Font families.
+	 */
+	private function get_font_families( $settings ) {
+		$families = array();
+
+		if ( ! empty( $settings['typography']['fontFamilies']['theme'] ) ) {
+			$families = $this->format_font_families( (array) $settings['typography']['fontFamilies']['theme'] );
+		}
+
+		return $this->merge_user_font_families( $families );
+	}
+
+	/**
+	 * Merge in the fonts added through the Font Library
+	 *
+	 * They live in the user origin, not the theme one. A shared slug overrides
+	 * the theme font, as WordPress does.
+	 *
+	 * @param array $families Theme font families.
+	 * @return array Theme and user font families.
+	 */
+	private function merge_user_font_families( $families ) {
+		if ( ! method_exists( '\WP_Theme_JSON_Resolver', 'get_user_data' ) ) {
+			return $families;
+		}
+
+		$user_data = \WP_Theme_JSON_Resolver::get_user_data();
+
+		if ( ! $user_data ) {
+			return $families;
+		}
+
+		$user_settings = $user_data->get_settings();
+
+		if ( empty( $user_settings['typography']['fontFamilies']['custom'] ) ) {
+			return $families;
+		}
+
+		$custom = $this->format_font_families( (array) $user_settings['typography']['fontFamilies']['custom'] );
+
+		if ( empty( $custom ) ) {
+			return $families;
+		}
+
+		$positions = $this->get_font_family_positions( $families );
+
+		foreach ( $custom as $family ) {
+			$slug = isset( $family['slug'] ) ? $family['slug'] : '';
+
+			// Unknown slug: a font added on top of the theme.
+			if ( ! isset( $positions[ $slug ] ) ) {
+				$families[] = $family;
+				continue;
+			}
+
+			$families[ $positions[ $slug ] ] = $family;
+		}
+
+		return $families;
+	}
+
+	/**
+	 * Map font family slugs to their position in the list
+	 *
+	 * @param array $families Font families.
+	 * @return array Map of slug to list position.
+	 */
+	private function get_font_family_positions( $families ) {
+		$positions = array();
+
+		foreach ( $families as $position => $family ) {
+			if ( empty( $family['slug'] ) ) {
+				continue;
+			}
+
+			$positions[ $family['slug'] ] = $position;
+		}
+
+		return $positions;
+	}
+
+	/**
+	 * Normalize font families to the theme.json font family shape
+	 *
+	 * @param array $families Raw font families.
+	 * @return array Normalized font families.
+	 */
+	private function format_font_families( $families ) {
+		$formatted = array();
+
+		foreach ( $families as $family ) {
+			if ( ! is_array( $family ) ) {
+				continue;
+			}
+
+			$entry = $this->pick_string_values( $family, array( 'name', 'slug', 'fontFamily' ) );
+
+			if ( empty( $entry ) ) {
+				continue;
+			}
+
+			$faces = array();
+
+			if ( ! empty( $family['fontFace'] ) ) {
+				$faces = $this->format_font_faces( (array) $family['fontFace'] );
+			}
+
+			// No faces means a system font stack: nothing is loaded.
+			if ( ! empty( $faces ) ) {
+				$entry['fontFace'] = $faces;
+			}
+
+			$formatted[] = $entry;
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * Normalize font faces to the theme.json font face shape
+	 *
+	 * The src stays as authored: 'file:./' marks a theme-bundled font, an
+	 * absolute URL shows the host serving it.
+	 *
+	 * @param array $faces Raw font faces.
+	 * @return array Normalized font faces.
+	 */
+	private function format_font_faces( $faces ) {
+		$formatted = array();
+
+		foreach ( $faces as $face ) {
+			if ( ! is_array( $face ) || empty( $face['src'] ) ) {
+				continue;
+			}
+
+			// theme.json allows a single src string as well as a list.
+			$src = array_values( array_filter( (array) $face['src'], 'is_string' ) );
+
+			// Without a src the face loads nothing.
+			if ( empty( $src ) ) {
+				continue;
+			}
+
+			$formatted[] = array_merge(
+				array( 'src' => $src ),
+				$this->pick_string_values( $face, array( 'fontWeight', 'fontStyle', 'fontFamily' ) )
+			);
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * Pick the given keys out of a theme.json entry as strings
+	 *
+	 * Keeps the schema identical across sites, where themes and plugins add keys
+	 * of their own. Numbers are cast, so a weight of 400 reads as "400".
+	 *
+	 * @param array $source Raw theme.json entry.
+	 * @param array $keys   Keys to keep, in output order.
+	 * @return array Picked values.
+	 */
+	private function pick_string_values( $source, $keys ) {
+		$picked = array();
+
+		foreach ( $keys as $key ) {
+			if ( ! isset( $source[ $key ] ) ) {
+				continue;
+			}
+
+			if ( ! is_string( $source[ $key ] ) && ! is_numeric( $source[ $key ] ) ) {
+				continue;
+			}
+
+			$picked[ $key ] = (string) $source[ $key ];
+		}
+
+		return $picked;
 	}
 
 	/**
@@ -399,30 +669,133 @@ class Site_Snapshot extends Rest_Controller_Base {
 	/**
 	 * Get navigation menus
 	 *
+	 * Mirrors Menus::get_menus() so the snapshot's menu list uses the same
+	 * ID space and shape as the menu endpoints. On block themes this returns
+	 * wp_navigation posts; on classic themes it returns nav_menu terms.
+	 *
 	 * @return array Menus data.
 	 */
 	private function get_menus() {
-		$nav_menus      = wp_get_nav_menus();
-		$menu_locations = get_nav_menu_locations();
 		$menus          = array();
+		$menu_locations = get_nav_menu_locations();
 
-		foreach ( $nav_menus as $menu ) {
-			$locations = array();
-			foreach ( $menu_locations as $location => $menu_id ) {
-				if ( (int) $menu_id === (int) $menu->term_id ) {
-					$locations[] = $location;
-				}
-			}
-
-			$menus[] = array(
-				'id'        => $menu->term_id,
-				'name'      => $menu->name,
-				'slug'      => $menu->slug,
-				'locations' => $locations,
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			// FSE: Get wp_navigation posts (same as Menus::get_menus).
+			$navigations = get_posts(
+				array(
+					'post_type'      => 'wp_navigation',
+					'post_status'    => array( 'publish', 'draft' ),
+					'posts_per_page' => -1,
+					'orderby'        => 'title',
+					'order'          => 'ASC',
+				)
 			);
+
+			foreach ( $navigations as $nav ) {
+				// Find locations assigned to this wp_navigation post.
+				$locations = array();
+				foreach ( $menu_locations as $location => $menu_id ) {
+					if ( (int) $menu_id === (int) $nav->ID ) {
+						$locations[] = $location;
+					}
+				}
+
+				// Count navigation items in the post content.
+				$item_count = $this->count_fse_nav_items( $nav->post_content );
+
+				$menus[] = array(
+					'id'         => $nav->ID,
+					'name'       => $nav->post_title,
+					'slug'       => $nav->post_name,
+					'type'       => 'fse',
+					'status'     => $nav->post_status,
+					'locations'  => $locations,
+					'item_count' => $item_count,
+				);
+			}
+		} else {
+			// Traditional: Get nav menus (same as Menus::get_menus).
+			$nav_menus = wp_get_nav_menus();
+
+			foreach ( $nav_menus as $menu ) {
+				// Find locations assigned to this menu.
+				$locations = array();
+				foreach ( $menu_locations as $location => $menu_id ) {
+					if ( (int) $menu_id === (int) $menu->term_id ) {
+						$locations[] = $location;
+					}
+				}
+
+				// Count menu items - wp_get_nav_menu_items returns false on error.
+				$items      = wp_get_nav_menu_items( $menu->term_id );
+				$item_count = ( is_array( $items ) && ! empty( $items ) ) ? count( $items ) : 0;
+
+				$menus[] = array(
+					'id'         => $menu->term_id,
+					'name'       => $menu->name,
+					'slug'       => $menu->slug,
+					'type'       => 'traditional',
+					'locations'  => $locations,
+					'item_count' => $item_count,
+				);
+			}
 		}
 
 		return $menus;
+	}
+
+	/**
+	 * Count navigation items in FSE navigation post content
+	 *
+	 * @param string $content The post content containing navigation blocks.
+	 * @return int Number of navigation items.
+	 */
+	private function count_fse_nav_items( $content ) {
+		if ( empty( $content ) || ! is_string( $content ) ) {
+			return 0;
+		}
+
+		// parse_blocks can return unexpected data on malformed content.
+		$blocks = parse_blocks( $content );
+		if ( ! is_array( $blocks ) ) {
+			return 0;
+		}
+
+		$count = 0;
+		foreach ( $blocks as $block ) {
+			if ( is_array( $block ) ) {
+				$count += $this->count_nav_blocks_recursive( $block );
+			}
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Recursively count navigation blocks
+	 *
+	 * @param array $block The block to process.
+	 * @return int Count of navigation blocks.
+	 */
+	private function count_nav_blocks_recursive( $block ) {
+		$count      = 0;
+		$block_name = $block['blockName'] ?? '';
+
+		// Count this block if it's a navigation block type.
+		if ( in_array( $block_name, $this->nav_block_types, true ) ) {
+			++$count;
+		}
+
+		// Recursively count inner blocks.
+		if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+			foreach ( $block['innerBlocks'] as $inner_block ) {
+				if ( is_array( $inner_block ) ) {
+					$count += $this->count_nav_blocks_recursive( $inner_block );
+				}
+			}
+		}
+
+		return $count;
 	}
 
 	/**

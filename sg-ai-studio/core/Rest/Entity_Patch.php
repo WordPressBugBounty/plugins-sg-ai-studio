@@ -11,6 +11,7 @@ use WP_REST_Response;
 use WP_REST_Request;
 use WP_Error;
 use SG_AI_Studio\Activity_Log\Activity_Log_Helper;
+use SG_AI_Studio\Helper\Helper;
 
 /**
  * Handles PATCH operations for entity endpoint.
@@ -23,6 +24,15 @@ use SG_AI_Studio\Activity_Log\Activity_Log_Helper;
  * - Remove a block: delete. Reorder a block: move.
  */
 class Entity_Patch {
+	use Template_Fork;
+
+	/**
+	 * Template types (template and template_part)
+	 *
+	 * @var array
+	 */
+	private $template_types = array( 'template', 'template_part' );
+
 	/**
 	 * Parent Entity instance
 	 *
@@ -57,6 +67,30 @@ class Entity_Patch {
 		$id         = $request->get_param( 'id' );
 		$if_match   = $request->get_param( 'if_match' );
 		$operations = $request->get_param( 'operations' );
+
+		// 0. Block theme gate for templates.
+		if ( in_array( $type, $this->template_types, true ) ) {
+			if ( ! function_exists( 'wp_is_block_theme' ) || ! wp_is_block_theme() ) {
+				return new WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'Templates are only available for block themes.', 'sg-ai-studio' ),
+					),
+					400
+				);
+			}
+
+			// Powermode check for template operations.
+			if ( ! get_option( 'sg_ai_studio_powermode', false ) ) {
+				return new WP_REST_Response(
+					array(
+						'success' => false,
+						'message' => __( 'Powermode is disabled. Template modifications are not allowed.', 'sg-ai-studio' ),
+					),
+					412
+				);
+			}
+		}
 
 		// 1. Fetch current entity.
 		$entity = $this->fetch_entity_data( $type, $id );
@@ -139,6 +173,8 @@ class Entity_Patch {
 			);
 		}
 
+		$revision_id = isset( $update_result['revision_id'] ) ? (int) $update_result['revision_id'] : 0;
+
 		// 7. Activity logging.
 		Activity_Log_Helper::add_log_entry(
 			'Entity',
@@ -151,22 +187,29 @@ class Entity_Patch {
 		);
 
 		// 8. Cache invalidation.
-		$this->clear_caches();
+		Helper::purge_caches();
 
 		// 9. Fetch updated entity.
 		$updated = $this->fetch_entity_data( $type, $id );
 
 		// 10. Return response.
 		$data = array(
-			'type'     => $type,
-			'id'       => $id,
-			'title'    => $updated['title'],
-			'slug'     => $updated['slug'],
-			'status'   => $updated['status'],
-			'modified' => $updated['modified'],
-			'etag'     => $this->entity->generate_etag( $new_content, $updated['modified'] ),
-			'blocks'   => $this->entity->clean_blocks( $blocks ),
+			'type'              => $type,
+			'id'                => $id,
+			'title'             => $updated['title'],
+			'slug'              => $updated['slug'],
+			'status'            => $updated['status'],
+			'modified'          => $updated['modified'],
+			'etag'              => $this->entity->generate_etag( $new_content, $updated['modified'] ),
+			'blocks'            => $this->entity->clean_blocks( $blocks ),
+			'revision_id'       => $revision_id ? $revision_id : null,
+			'revisions_enabled' => $this->revisions_enabled_for( $type, $id ),
 		);
+
+		// Add source field for templates.
+		if ( in_array( $type, $this->template_types, true ) && isset( $updated['source'] ) ) {
+			$data['source'] = $updated['source'];
+		}
 
 		if ( ! empty( $this->notices ) ) {
 			$data['notices'] = $this->notices;
@@ -230,7 +273,7 @@ class Entity_Patch {
 				'slug'     => $post->post_name,
 				'status'   => $post->post_status,
 			);
-		} elseif ( in_array( $type, array( 'template', 'template_part' ), true ) ) {
+		} elseif ( in_array( $type, $this->template_types, true ) ) {
 			if ( ! function_exists( 'get_block_template' ) ) {
 				return new WP_Error( 'not_supported', __( 'Block templates not supported.', 'sg-ai-studio' ) );
 			}
@@ -244,7 +287,7 @@ class Entity_Patch {
 
 			$modified = null;
 			if ( 'custom' === $template->source ) {
-				$template_post = get_page_by_path( $id, OBJECT, $template_type );
+				$template_post = get_page_by_path( $template->slug, OBJECT, $template->type );
 				if ( $template_post ) {
 					$modified = $template_post->post_modified;
 				}
@@ -256,6 +299,7 @@ class Entity_Patch {
 				'title'    => $template->title,
 				'slug'     => $template->slug,
 				'status'   => isset( $template->status ) ? $template->status : 'publish',
+				'source'   => $template->source,
 			);
 		}
 
@@ -315,18 +359,18 @@ class Entity_Patch {
 	 * @return bool|WP_Error True if the entity exists, WP_Error if not.
 	 */
 	private function validate_entity_exists( $type, $id ) {
-		// List of supported types.
-		$supported_types = array(
-			'page',
-			'post',
-			'wp_block',
-		);
-
-		if ( in_array( $type, $supported_types, true ) ) {
+		if ( in_array( $type, array( 'page', 'post', 'wp_block' ), true ) ) {
 			$post = get_post( (int) $id );
 
 			if ( ! $post ) {
 				return new WP_Error( 'not_found', __( 'Entity not found.', 'sg-ai-studio' ) );
+			}
+		} elseif ( in_array( $type, $this->template_types, true ) ) {
+			$template_type = $type === 'template' ? 'wp_template' : 'wp_template_part';
+			$template      = get_block_template( $id, $template_type );
+
+			if ( ! $template ) {
+				return new WP_Error( 'not_found', __( 'Template not found.', 'sg-ai-studio' ) );
 			}
 		}
 
@@ -688,66 +732,107 @@ class Entity_Patch {
 	}
 
 	/**
+	 * Extract the bare slug from a (possibly theme-namespaced) block template id
+	 *
+	 * @param string $id Template id, e.g. "twentytwentyfive//bimmer-footer".
+	 * @return string Bare slug, e.g. "bimmer-footer".
+	 */
+	private function template_slug_from_id( $id ) {
+		$pos = strpos( $id, '//' );
+		return false === $pos ? $id : substr( $id, $pos + 2 );
+	}
+
+	/**
 	 * Persist updated content to entity
 	 *
 	 * @param string $type    Entity type.
 	 * @param mixed  $id      Entity ID.
 	 * @param string $content Serialized block markup.
-	 * @return bool|WP_Error  True on success, WP_Error on failure.
+	 * @return array|WP_Error Array with the pre-edit revision id on success, WP_Error on failure.
 	 */
 	private function persist_entity( $type, $id, $content ) {
 		if ( in_array( $type, array( 'page', 'post', 'wp_block' ), true ) ) {
+			$post_id = (int) $id;
+
+			// Snapshot the pre-edit content so the change has a deterministic restore
+			// point. No-op (returns 0) when the post type has revisions disabled.
+			$revision_id = Helper::save_pre_edit_revision( $post_id );
+
 			$result = wp_update_post(
 				array(
-					'ID'           => (int) $id,
+					'ID'           => $post_id,
 					'post_content' => wp_kses_post( $content ),
 				),
 				true
 			);
 
-			return is_wp_error( $result ) ? $result : true;
-		} elseif ( in_array( $type, array( 'template', 'template_part' ), true ) ) {
-			$template_type = $type === 'template' ? 'wp_template' : 'wp_template_part';
-			$template_post = get_page_by_path( $id, OBJECT, $template_type );
+			return is_wp_error( $result ) ? $result : array( 'revision_id' => $revision_id );
+		} elseif ( in_array( $type, $this->template_types, true ) ) {
+			$template_type = 'template' === $type ? 'wp_template' : 'wp_template_part';
 
+			// The id may be theme-namespaced (theme//slug); the stored post_name is the
+			// bare slug. Resolving the full id never matches, which would wrongly insert
+			// a duplicate template post instead of updating the existing one.
+			$template = get_block_template( $id, $template_type );
+			$slug     = $template ? $template->slug : $this->template_slug_from_id( $id );
+
+			$template_post = get_page_by_path( $slug, OBJECT, $template_type );
+
+			// No DB post yet means this is a theme-provided template being edited for
+			// the first time; fork it into a custom post with the taxonomy terms WP
+			// needs to recognize it. wp_insert_post() creates no revision and there is
+			// no prior post state to snapshot (the source is a theme file); the fork
+			// content becomes the pre-edit revision on the next edit.
 			if ( ! $template_post ) {
-				$result = wp_insert_post(
-					array(
-						'post_type'    => $template_type,
-						'post_name'    => $id,
-						'post_status'  => 'publish',
-						'post_content' => $content,
-					),
-					true
-				);
-			} else {
-				$result = wp_update_post(
-					array(
-						'ID'           => $template_post->ID,
-						'post_content' => $content,
-					),
-					true
-				);
+				$result = $this->create_template_fork( $template, $template_type, $slug, $content );
+				return is_wp_error( $result ) ? $result : array( 'revision_id' => 0 );
 			}
 
-			return is_wp_error( $result ) ? $result : true;
+			// Existing DB post: snapshot the pre-edit content before updating so the
+			// edit is reversible, mirroring the posts/pages edit flow.
+			$revision_id = Helper::save_pre_edit_revision( $template_post->ID );
+
+			$result = wp_update_post(
+				array(
+					'ID'           => $template_post->ID,
+					'post_content' => $content,
+				),
+				true
+			);
+
+			return is_wp_error( $result ) ? $result : array( 'revision_id' => $revision_id );
 		}
 
 		return new WP_Error( 'invalid_type', __( 'Invalid entity type.', 'sg-ai-studio' ) );
 	}
 
 	/**
-	 * Clear caches
+	 * Whether revisions are enabled for the entity being patched
 	 *
-	 * @return void
+	 * Reports the site's revision status so a client can tell "no revisions yet"
+	 * apart from "revisions are turned off". Resolves the underlying post the same
+	 * way persist_entity() does, then defers to wp_revisions_enabled(), which
+	 * accounts for both WP_POST_REVISIONS and the post type's revision support.
+	 *
+	 * @param string $type Entity type.
+	 * @param mixed  $id   Entity ID.
+	 * @return bool True when revisions are enabled for the resolved post.
 	 */
-	private function clear_caches() {
-		if ( function_exists( '\sg_cachepress_purge_cache' ) ) {
-			\sg_cachepress_purge_cache();
-			\wp_cache_flush();
-		} else {
-			\wp_cache_flush();
+	private function revisions_enabled_for( $type, $id ) {
+		if ( in_array( $type, array( 'page', 'post', 'wp_block' ), true ) ) {
+			$post = get_post( (int) $id );
+			return $post ? wp_revisions_enabled( $post ) : false;
 		}
-	}
 
+		if ( in_array( $type, $this->template_types, true ) ) {
+			$template_type = 'template' === $type ? 'wp_template' : 'wp_template_part';
+			$template      = get_block_template( $id, $template_type );
+			$slug          = $template ? $template->slug : $this->template_slug_from_id( $id );
+			$template_post = get_page_by_path( $slug, OBJECT, $template_type );
+
+			return $template_post ? wp_revisions_enabled( $template_post ) : false;
+		}
+
+		return false;
+	}
 }
