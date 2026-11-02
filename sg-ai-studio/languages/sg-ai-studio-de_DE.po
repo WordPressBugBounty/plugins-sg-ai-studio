@@ -2436,3 +2436,30 @@ msgstr "den SiteGround AI Studio Service"
 
 msgid "To activate the plugin, you need to sign up for"
 msgstr "Um das Plugin zu aktivieren, müssen Sie sich für"
+
+msgid "This feature needs Connector Approval. Approve the AI Agent by SiteGround and the AI plugins on the %s page."
+msgstr "Für diese Funktion ist eine Connector-Genehmigung erforderlich. Genehmigen Sie den KI-Agenten von SiteGround und die KI-Plugins auf der Seite „%s“."
+
+msgid "Tools/Connector Approvals"
+msgstr "Tools/Connector-Genehmigungen"
+
+msgid "AI Agent Access for Editors"
+msgstr "AI Agent-Zugriff für Redakteure"
+
+msgid "AI Agent Access for Editors is disabled"
+msgstr "AI Agent-Zugriff für Redakteure ist deaktiviert"
+
+msgid "AI Agent Access for Editors is enabled"
+msgstr "AI Agent-Zugriff für Redakteure ist aktiviert"
+
+msgid "The AI Agent by SiteGround needs Connector Approval before it can run. Grant it on the {{a}}Tools/Connector Approvals{{/a}} page in WP Admin, then try again."
+msgstr "Der AI Agent von SiteGround benötigt eine Connector-Genehmigung, bevor er ausgeführt werden kann. Erteilen Sie diese auf der Seite {{a}}Tools/Connector-Genehmigungen{{/a}} im WP-Admin und versuchen Sie es dann erneut."
+
+msgid "When this option is on, users with the Editor role can use the AI Agent chat on this site. The AI Agent acts as the person asking, so it can never do more than they could do themselves in wp-admin. Editors can work with posts, pages, media, comments and categories, but not plugins, themes, settings or the store. If the option is turned off, only Administrators can use the AI Agent."
+msgstr "Wenn diese Option aktiviert ist, können Benutzer mit der Rolle „Redakteur“ den AI Agent-Chat auf dieser Website verwenden. Der AI Agent handelt im Namen der anfragenden Person und kann daher nie mehr tun, als diese selbst in wp-admin tun könnte. Redakteure können mit Beiträgen, Seiten, Medien, Kommentaren und Kategorien arbeiten, jedoch nicht mit Plugins, Themes, Einstellungen oder dem Shop. Wenn die Option deaktiviert ist, können nur Administratoren den AI Agent verwenden."
+
+msgid "Insufficient tokens. Contact your administrator."
+msgstr "Nicht genügend Tokens. Wenden Sie sich an Ihren Administrator."
+
+msgid "User"
+msgstr "Benutzer"

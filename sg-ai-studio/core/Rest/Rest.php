@@ -456,7 +456,7 @@ class Rest extends Rest_Controller_Base {
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_acl' ),
 				'permission_callback' => function () {
-					return current_user_can( 'manage_options' );
+					return Helper::can_use_agent();
 				},
 			)
 		);
@@ -468,7 +468,7 @@ class Rest extends Rest_Controller_Base {
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'get_onboarding' ),
 					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
+						return Helper::can_use_agent();
 					},
 				),
 				array(
@@ -798,6 +798,15 @@ class Rest extends Rest_Controller_Base {
 	 * @return \WP_REST_Response
 	 */
 	public function get_onboarding() {
+		// Only administrators see the onboarding, it lists admin-only actions.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return rest_ensure_response(
+				array(
+					'shown' => true,
+				)
+			);
+		}
+
 		$onboarding = (bool) get_option( 'sg_ai_studio_onboarding_shown', false );
 
 		return rest_ensure_response(

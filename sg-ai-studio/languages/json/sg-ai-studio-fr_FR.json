@@ -584,10 +584,10 @@
         "Installation, mise à jour et vérification des plugins"
     ],
     "Insufficient AI tokens. Please upgrade your plan to continue.": [
-        "tokens IA insuffisants. Veuillez passer à un forfait supérieur pour continuer."
+        "Tokens IA insuffisants. Veuillez passer à un forfait supérieur pour continuer."
     ],
     "Insufficient tokens. Please go to {{a}}SiteGround AI Studio{{/a}} to upgrade or add more tokens.": [
-        "tokens insuffisants. Veuillez vous rendre sur SiteGround AI Studio pour mettre à niveau votre compte ou ajouter des tokens."
+        "Tokens insuffisants. Rendez-vous sur {{a}}SiteGround AI Studio{{/a}} pour mettre à niveau votre compte ou ajouter des tokens."
     ],
     "Invalid authorization header format.": [
         "Format d'en-tête d'autorisation invalide."
@@ -1455,5 +1455,32 @@
     ],
     "To activate the plugin, you need to sign up for": [
         "Pour activer le plugin, vous devez vous inscrire"
+    ],
+    "This feature needs Connector Approval. Approve the AI Agent by SiteGround and the AI plugins on the %s page.": [
+        "Cette fonctionnalité nécessite l'approbation du connecteur. Approuvez l'agent IA de SiteGround et les plugins IA sur la page %s."
+    ],
+    "Tools/Connector Approvals": [
+        "Outils/Approbations des connecteurs"
+    ],
+    "AI Agent Access for Editors": [
+        "Accès des éditeurs à l'AI Agent"
+    ],
+    "AI Agent Access for Editors is disabled": [
+        "L'accès des éditeurs à l'AI Agent est désactivé"
+    ],
+    "AI Agent Access for Editors is enabled": [
+        "L'accès des éditeurs à l'AI Agent est activé"
+    ],
+    "The AI Agent by SiteGround needs Connector Approval before it can run. Grant it on the {{a}}Tools/Connector Approvals{{/a}} page in WP Admin, then try again.": [
+        "L'AI Agent de SiteGround nécessite l'approbation du connecteur avant de pouvoir s'exécuter. Accordez-la sur la page {{a}}Outils/Approbations des connecteurs{{/a}} de l'administration WP, puis réessayez."
+    ],
+    "When this option is on, users with the Editor role can use the AI Agent chat on this site. The AI Agent acts as the person asking, so it can never do more than they could do themselves in wp-admin. Editors can work with posts, pages, media, comments and categories, but not plugins, themes, settings or the store. If the option is turned off, only Administrators can use the AI Agent.": [
+        "Lorsque cette option est activée, les utilisateurs ayant le rôle Éditeur peuvent utiliser le chat de l'AI Agent sur ce site. L'AI Agent agit au nom de la personne qui le sollicite : il ne peut donc jamais faire plus que ce qu'elle pourrait faire elle-même dans wp-admin. Les éditeurs peuvent travailler avec les articles, les pages, les médias, les commentaires et les catégories, mais pas avec les plugins, les thèmes, les paramètres ni la boutique. Si l'option est désactivée, seuls les administrateurs peuvent utiliser l'AI Agent."
+    ],
+    "Insufficient tokens. Contact your administrator.": [
+        "Tokens insuffisants. Contactez votre administrateur."
+    ],
+    "User": [
+        "Utilisateur"
     ]
 }

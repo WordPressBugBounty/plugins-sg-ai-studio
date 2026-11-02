@@ -25,8 +25,8 @@ class Frontend {
 	public function enqueue_scripts() {
 		global $wp_version;
 
-		// Bail if not on frontend or user is not an administrator.
-		if ( is_admin() || ! current_user_can( 'manage_options' ) ) {
+		// Bail if not on frontend or user cannot use the AI Agent.
+		if ( is_admin() || ! Helper::can_use_agent() ) {
 			return;
 		}
 
@@ -75,6 +75,7 @@ class Frontend {
 		$localized_data = array(
 			'config'       => array(
 				'home_url'         => get_home_url(),
+				'admin_url'        => admin_url(),
 				'rest_base'        => rtrim( esc_url_raw( rest_url() ), '/' ),
 				'threadId'         => $thread_id,
 				'localeSlug'       => join( '-', explode( '_', \get_user_locale() ) ),
@@ -163,8 +164,8 @@ class Frontend {
 	 * @return void
 	 */
 	public function add_floating_chat() {
-		// Only show for users who can manage options on frontend.
-		if ( is_admin() || ! current_user_can( 'manage_options' ) ) {
+		// Only show for users who can use the AI Agent on frontend.
+		if ( is_admin() || ! Helper::can_use_agent() ) {
 			return;
 		}
 

@@ -399,10 +399,10 @@ class Products extends Rest_Controller_Base {
 				'required'    => false,
 			),
 			'type'         => array(
-				'description' => 'Limit result set to products of a specific type.',
-				'type'        => 'string',
-				'enum'        => array( 'simple', 'variable', 'grouped', 'external' ),
-				'required'    => false,
+				'description'       => 'Limit result set to products of a specific type (e.g. simple, variable, grouped, external, or a plugin-registered type).',
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+				'required'          => false,
 			),
 			'orderby'      => array(
 				'description' => 'Sort collection by object attribute.',
@@ -1134,6 +1134,8 @@ class Products extends Rest_Controller_Base {
 
 		if ( isset( $request['type'] ) && ! empty( $request['type'] ) ) {
 			$args['type'] = $request['type'];
+		} else {
+			$args['type'] = \SG_AI_Studio\Helper\Helper::get_all_product_types();
 		}
 
 		$products       = \wc_get_products( $args );
@@ -1906,6 +1908,7 @@ class Products extends Rest_Controller_Base {
 				array(
 					'include' => $children,
 					'limit'   => -1,
+					'type'    => \SG_AI_Studio\Helper\Helper::get_all_product_types(),
 				)
 			);
 

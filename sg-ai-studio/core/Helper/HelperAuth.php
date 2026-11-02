@@ -38,6 +38,19 @@ class SignApiServerException extends \Exception
 	}
 }
 
+/**
+ * Raised when the AI plugin's Connector Approval feature blocks the outbound
+ * token request at the HTTP layer because the calling plugin has not been
+ * approved for the SiteGround AI connector.
+ *
+ * Extends SignApiAuthException so existing catch blocks keep working, while
+ * letting callers detect this specific, actionable case and skip retries
+ * (an approval block will not clear on its own within a request).
+ */
+class ConnectorNotApprovedException extends SignApiAuthException
+{
+}
+
 class Claims
 {
 	public int $cts;
@@ -266,6 +279,15 @@ class SignApiClient
 
 		// Check for WP_Error
 		if ( is_wp_error( $response ) ) {
+			// The AI plugin's Connector Approval feature blocks the request at
+			// the HTTP layer (pre_http_request) until an administrator approves
+			// the calling plugin for the SiteGround AI connector. Surface it as
+			// a dedicated, non-retryable exception so callers can show an
+			// actionable message instead of a generic auth failure.
+			if ( 'wpai_connector_not_approved' === $response->get_error_code() ) {
+				throw new ConnectorNotApprovedException( $response->get_error_message() );
+			}
+
 			throw new SignApiAuthException( "HTTP request failed: " . esc_html( $response->get_error_message() ) );
 		}
 
@@ -294,7 +316,7 @@ class SignApiClient
 		return $responseData['data']['token'];
 	}
 
-	public function get_auth_token( int $retries = 5 ): string {
+	public function get_auth_token( int $retries = 5, ?array $extra_payload = null ): string {
 		$current_time = time();
 		if ( $this->token && $this->token_expiry && $current_time < ( $this->token_expiry - 300 ) ) {
 
@@ -308,7 +330,7 @@ class SignApiClient
 			throw new SignApiAuthException( 'No API key found for client ' . esc_html( $this->clientName ) );
 		}
 
-		$token              = $this->generate_token( $key_data, $retries );
+		$token              = $this->generate_token( $key_data, $retries, $extra_payload );
 		$this->token        = $token;
 		$this->token_expiry = $current_time + $this->token_valid_seconds;
 
@@ -327,6 +349,10 @@ class SignApiClient
 		for ( $attempt = 0; $attempt <= $retries; $attempt++ ) {
 			try {
 				return $operation();
+			} catch ( ConnectorNotApprovedException $e ) {
+				// A Connector Approval block will not clear within this loop;
+				// fail fast instead of hanging through the backoff schedule.
+				throw $e;
 			} catch ( \Exception $e ) {
 				$last_exception = $e;
 				if ( $attempt >= $retries ) {

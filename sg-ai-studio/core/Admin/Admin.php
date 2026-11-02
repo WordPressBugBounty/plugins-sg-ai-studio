@@ -174,7 +174,7 @@ class Admin {
 				)
 			);
 		}
-		if ( is_admin() && current_user_can( 'manage_options' ) ) {
+		if ( is_admin() && Helper::can_use_agent() ) {
 			// Enqueue the chat script.
 			wp_enqueue_script(
 				'siteground-ai-studio-chat',
@@ -246,6 +246,7 @@ class Admin {
 			$localized_data = array(
 				'config'       => array(
 					'home_url'         => get_home_url(),
+					'admin_url'        => admin_url(),
 					'rest_base'        => rtrim( esc_url_raw( rest_url() ), '/' ),
 					'threadId'         => $thread_id,
 					'localeSlug'       => join( '-', explode( '_', \get_user_locale() ) ),
@@ -381,8 +382,8 @@ class Admin {
 	 * @return void
 	 */
 	public function add_floating_chat() {
-		// Only show for users who can manage options.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		// Only show for users who can use the AI Agent.
+		if ( ! Helper::can_use_agent() ) {
 			return;
 		}
 

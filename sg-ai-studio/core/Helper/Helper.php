@@ -8,11 +8,25 @@
 namespace SG_AI_Studio\Helper;
 
 use SG_AI_Studio\HelperAuth\SignApiClient;
+use SG_AI_Studio\HelperAuth\ConnectorNotApprovedException;
 
 /**
  * Helper class for utility functions.
  */
 class Helper {
+	/**
+	 * Reason code for the most recent generate_ai_studio_token() failure.
+	 *
+	 * Null when the last attempt succeeded or has not run. Set to
+	 * 'connector_not_approved' when the AI plugin's Connector Approval feature
+	 * blocked the token request. Lets synchronous callers (the AI provider
+	 * models) surface an actionable message without changing the token
+	 * method's string|false return contract.
+	 *
+	 * @var string|null
+	 */
+	private static $last_token_error = null;
+
 	/**
 	 * Check if the plugin is running in staging environment
 	 *
@@ -463,6 +477,260 @@ class Helper {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Capabilities relevant to the agent surface.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return array<int,string> List of capability names.
+	 */
+	public static function get_agent_surface_capabilities() {
+		return array(
+			// Read-only.
+			'read',
+			// Content.
+			'edit_posts',
+			'edit_others_posts',
+			'publish_posts',
+			'delete_posts',
+			'delete_others_posts',
+			'edit_pages',
+			'edit_others_pages',
+			'publish_pages',
+			'delete_pages',
+			'manage_categories',
+			'moderate_comments',
+			'upload_files',
+			// Store (WooCommerce).
+			'manage_woocommerce',
+			'edit_products',
+			'edit_shop_orders',
+			// Design.
+			'edit_theme_options',
+			'switch_themes',
+			'edit_themes',
+			'install_themes',
+			// Site / automations.
+			'manage_options',
+			'activate_plugins',
+			'install_plugins',
+			'update_plugins',
+			'update_core',
+			// Users.
+			'list_users',
+			'create_users',
+			'edit_users',
+			'delete_users',
+			'promote_users',
+		);
+	}
+
+	/**
+	 * Build a capability => granted map for a user across the given capabilities.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param \WP_User|int $user The user object or ID.
+	 * @param array        $caps List of capability names to evaluate.
+	 * @return array<string,bool> Map of capability name to whether the user is granted it.
+	 */
+	public static function get_user_capability_map( $user, array $caps ) {
+		if ( ! $user instanceof \WP_User ) {
+			$user = get_userdata( (int) $user );
+		}
+
+		$map = array();
+
+		if ( ! $user ) {
+			return $map;
+		}
+
+		foreach ( $caps as $cap ) {
+			$map[ $cap ] = user_can( $user, $cap );
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Describe the current acting WordPress user for the AI Studio backend.
+	 *
+	 * @since 1.3.0
+	 *
+	 * @return array|null The acting user block, or null when there is no logged-in user.
+	 */
+	public static function get_acting_user() {
+		$user = get_userdata( get_current_user_id() );
+
+		if ( ! $user ) {
+			return null;
+		}
+
+		$capability_map = self::get_user_capability_map( $user, self::get_agent_surface_capabilities() );
+
+		// Reduce to the granted capabilities, matching the shape the backend expects.
+		$granted_caps = array_keys( array_filter( $capability_map ) );
+
+		return array(
+			'id'    => $user->ID,
+			'roles' => array_values( $user->roles ),
+			'caps'  => array_values( $granted_caps ),
+		);
+	}
+
+	/**
+	 * Check if Editor access to the AI Agent is enabled.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @return bool True if Editors can use the AI Agent, false otherwise (default).
+	 */
+	public static function is_editor_access_enabled() {
+		return (bool) get_option( 'sg_ai_studio_editor_access', false );
+	}
+
+	/**
+	 * Check if a user may use the AI Agent chat.
+	 *
+	 * Administrators always can. Editors can only when Editor access is enabled.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @param \WP_User|int|null $user The user object or ID. Defaults to the current user.
+	 * @return bool True if the user may use the AI Agent, false otherwise.
+	 */
+	public static function can_use_agent( $user = null ) {
+		if ( ! $user instanceof \WP_User ) {
+			$user = null === $user ? wp_get_current_user() : get_userdata( (int) $user );
+		}
+
+		if ( ! $user || ! $user->exists() ) {
+			return false;
+		}
+
+		if ( user_can( $user, 'manage_options' ) ) {
+			return true;
+		}
+
+		return self::is_editor_access_enabled() && in_array( 'editor', (array) $user->roles, true );
+	}
+
+	/**
+	 * Capability the acting user needs for each AI Agent REST area.
+	 *
+	 * The area is the first route segment after the namespace (e.g. "posts" for
+	 * /sg-ai-studio/posts/12/terms). Areas not listed here need manage_options.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @return array<string,string> Map of route area to required capability.
+	 */
+	public static function get_agent_area_capabilities() {
+		return array(
+			// Content.
+			'posts'          => 'edit_posts',
+			'pages'          => 'edit_pages',
+			'categories'     => 'manage_categories',
+			'tags'           => 'manage_categories',
+			'taxonomies'     => 'manage_categories',
+			'types'          => 'edit_posts',
+			'comments'       => 'moderate_comments',
+			'media'          => 'upload_files',
+			'entity'         => 'edit_posts',
+			'site-snapshot'  => 'edit_posts',
+			'ping'           => 'read',
+			// Design.
+			'menus'          => 'edit_theme_options',
+			'menu-items'     => 'edit_theme_options',
+			'menu-locations' => 'edit_theme_options',
+			'menu-type'      => 'edit_theme_options',
+			'template-parts' => 'edit_theme_options',
+			'themes'         => 'switch_themes',
+			// Store (WooCommerce).
+			'products'       => 'manage_woocommerce',
+			'orders'         => 'manage_woocommerce',
+			'coupons'        => 'manage_woocommerce',
+			'reports'        => 'manage_woocommerce',
+			// Site.
+			'plugins'        => 'activate_plugins',
+			'core'           => 'update_core',
+			'settings'       => 'manage_options',
+			'settings-page'  => 'manage_options',
+			// Users.
+			'users'          => 'list_users',
+		);
+	}
+
+	/**
+	 * Resolve the capability required for an AI Agent REST request.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return string The required capability.
+	 */
+	public static function get_agent_request_capability( $request ) {
+		$route = ltrim( (string) $request->get_route(), '/' );
+		$parts = explode( '/', $route );
+		$area  = isset( $parts[1] ) ? $parts[1] : '';
+
+		// The entity endpoint edits posts, pages and templates alike.
+		if ( 'entity' === $area ) {
+			$type = $request->get_param( 'type' );
+
+			if ( 'page' === $type ) {
+				return 'edit_pages';
+			}
+
+			if ( in_array( $type, array( 'template', 'template_part' ), true ) ) {
+				return 'edit_theme_options';
+			}
+		}
+
+		$capabilities = self::get_agent_area_capabilities();
+
+		return isset( $capabilities[ $area ] ) ? $capabilities[ $area ] : 'manage_options';
+	}
+
+	/**
+	 * Act as the chatting user carried in the AI Studio token.
+	 *
+	 * Tokens without a user (older plugins, system calls) are allowed as before.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @param array            $payload Decoded token payload.
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return true|\WP_Error True if the user may perform the request, WP_Error otherwise.
+	 */
+	public static function authorize_token_user( $payload, $request ) {
+		if ( empty( $payload['_uid'] ) ) {
+			return true;
+		}
+
+		$user = get_userdata( (int) $payload['_uid'] );
+
+		if ( ! $user || ! self::can_use_agent( $user ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'This needs an administrator.', 'sg-ai-studio' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		wp_set_current_user( $user->ID );
+
+		if ( ! current_user_can( self::get_agent_request_capability( $request ) ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'This needs an administrator.', 'sg-ai-studio' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
 	}
 
 	/**
@@ -1179,8 +1447,7 @@ class Helper {
 				'dynamic-keys'
 			);
 
-			// Just decode the token to validate it.
-			$sign_client->decode( $token );
+			$payload = $sign_client->decode( $token );
 		} catch ( \SG_AI_Studio\HelperAuth\SignApiAuthException $e ) {
 			return new \WP_Error(
 				'rest_forbidden',
@@ -1197,7 +1464,7 @@ class Helper {
 			);
 		}
 
-		return true;
+		return self::authorize_token_user( $payload, $request );
 	}
 
 	/**
@@ -1223,6 +1490,7 @@ class Helper {
 			'sg_ai_studio_connected',
 			'sg_ai_studio_provider_connected',
 			'sg_ai_studio_connected_url',
+			'sg_ai_studio_editor_access',
 		);
 
 		foreach( $options as $option ) {
@@ -1301,20 +1569,20 @@ class Helper {
 		);
 	}
 	/**
-	 * Send request to AI Studio generation API (v1)
+	 * Build a request for the AI Studio generation API (v1)
 	 *
-	 * Handles text generation, image generation, and image editing requests
-	 * with different endpoints and request formats.
+	 * Resolves the endpoint and request body for text generation, image
+	 * generation, and image editing requests. Sending is left to the caller
+	 * so requests can go through the WP AI Client SDK HTTP transporter.
 	 *
 	 * @param array  $question_parts Array of question parts with 'type' and content (for text) or prompt string (for image).
-	 * @param string $api_key AI Studio API key.
 	 * @param array  $model_config Optional model configuration.
 	 * @param bool   $is_image_generation Whether this is an image generation request.
 	 * @param string $chat_source Optional source identifier for the chat request.
 	 * @param bool   $is_image_edit Whether this is an image editing/refinement request.
-	 * @return array|\WP_Error The API response or WP_Error.
+	 * @return array{url: string, body: array} The endpoint URL and request body.
 	 */
-	public static function send_to_text_generation_api( $question_parts, $api_key, $model_config = array(), $is_image_generation = false, $chat_source = '', $is_image_edit = false ) {
+	public static function build_generation_api_request( $question_parts, $model_config = array(), $is_image_generation = false, $chat_source = '', $is_image_edit = false ) {
 		if ( self::is_staging_environment() ) {
 			$hostname = 'https://api.staging.studio.siteground.ai';
 		} else {
@@ -1372,36 +1640,40 @@ class Helper {
 			}
 		}
 
-		$headers = array(
-			'Authorization' => 'Bearer ' . $api_key,
-			'Content-Type'  => 'application/json',
-			'Connection'    => 'keep-alive',
-			'Accept'        => '*/*',
+		return array(
+			'url'  => $url,
+			'body' => $body,
 		);
-
-		$args = array(
-			'headers'     => $headers,
-			'body'        => wp_json_encode( $body ),
-			'method'      => 'POST',
-			'timeout'     => 90000000,
-			'redirection' => 45,
-			'sslverify'   => true,
-		);
-
-		return wp_remote_post( $url, $args );
 	}
 
 	/**
 	 * Generates a token for AI Studio Service.
 	 *
-	 * @return string $token
+	 * The logged-in user is added to the token so the backend knows who is acting.
+	 * Without a logged-in user (cron, CLI) the token carries no user.
+	 *
+	 * On failure returns false; call last_token_error() to find out whether
+	 * the AI plugin's Connector Approval feature blocked the request.
+	 *
+	 * @return string|false $token
 	 */
 	public static function generate_ai_studio_token() {
-		$auth_token = '';
+		self::$last_token_error = null;
+		$auth_token             = '';
 		// Get client_id from WordPress options or request parameters.
 		$client_id = get_option( 'sg_ai_studio_client_id' );
 		if ( empty( $client_id ) ) {
 			return $auth_token;
+		}
+
+		$extra_payload = null;
+		$acting_user   = self::get_acting_user();
+
+		if ( ! empty( $acting_user ) ) {
+			$extra_payload = array(
+				'_uid'    => $acting_user['id'],
+				'_uroles' => $acting_user['roles'],
+			);
 		}
 
 		require_once plugin_dir_path( __FILE__ ) . 'HelperAuth.php';
@@ -1420,12 +1692,60 @@ class Helper {
 
 		// Generate the authentication token.
 		try {
-			$auth_token = $auth_client->get_auth_token();
+			$auth_token = $auth_client->get_auth_token( 5, $extra_payload );
+		} catch ( ConnectorNotApprovedException $e ) {
+			// Record why the token failed so callers can surface an
+			// actionable message. Keep returning false to preserve the
+			// string|false contract every other caller relies on.
+			self::$last_token_error = 'connector_not_approved';
+			$auth_token             = false;
 		} catch ( \Exception $e ) {
 			$auth_token = false;
 		}
 
 		return $auth_token;
+	}
+
+	/**
+	 * Returns the reason code for the most recent token-generation failure.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @return string|null 'connector_not_approved' when the AI plugin's
+	 *                      Connector Approval feature blocked the last token
+	 *                      request; null if it succeeded or failed otherwise.
+	 */
+	public static function last_token_error() {
+		return self::$last_token_error;
+	}
+
+	/**
+	 * Actionable message shown when the SiteGround AI connector is blocked by
+	 * the AI plugin's Connector Approval feature.
+	 *
+	 * @since 1.3.2
+	 *
+	 * @param bool $with_link Whether to link "Tools/Connector Approvals" to the
+	 *                        approvals page. Use false where HTML isn't rendered.
+	 *
+	 * @return string
+	 */
+	public static function connector_approval_error_message( $with_link = false ): string {
+		$page_label = __( 'Tools/Connector Approvals', 'sg-ai-studio' );
+
+		if ( $with_link ) {
+			$page_label = sprintf(
+				'<a href="%1$s">%2$s</a>',
+				esc_url( admin_url( 'tools.php?page=ai-connector-approval' ) ),
+				esc_html( $page_label )
+			);
+		}
+
+		return sprintf(
+			/* translators: %s: "Tools/Connector Approvals" admin page name, optionally linked. */
+			__( 'This feature needs Connector Approval. Approve the AI Agent by SiteGround and the AI plugins on the %s page.', 'sg-ai-studio' ),
+			$page_label
+		);
 	}
 
 	/**
@@ -1437,6 +1757,29 @@ class Helper {
 	 */
 	public static function validate_force_param( $value ) {
 		return $value === true || $value === 'true' || $value === 1 || $value === 'True';
+	}
+
+	/**
+	 * Get all WooCommerce product type slugs, including plugin-registered ones.
+	 *
+	 * @return array Product type slugs.
+	 */
+	public static function get_all_product_types() {
+		$types = \function_exists( '\wc_get_product_types' ) ? array_keys( \wc_get_product_types() ) : array();
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_type',
+				'fields'     => 'slugs',
+				'hide_empty' => false,
+			)
+		);
+
+		if ( ! is_wp_error( $terms ) ) {
+			$types = array_merge( $types, $terms );
+		}
+
+		return array_values( array_unique( $types ) );
 	}
 
 	/**

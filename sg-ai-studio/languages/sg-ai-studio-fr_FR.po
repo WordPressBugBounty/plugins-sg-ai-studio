@@ -981,17 +981,13 @@ msgstr "Installation, mise à jour et vérification des plugins"
 #: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Image_Generation_Model.php:73
 #: /chroot/plugins/sg-ai-studio/core/Ai_Provider/Ai_Studio_Text_Generation_Model.php:80
 msgid "Insufficient AI tokens. Please upgrade your plan to continue."
-msgstr ""
-"tokens IA insuffisants. Veuillez passer à un forfait supérieur pour "
-"continuer."
+msgstr "Tokens IA insuffisants. Veuillez passer à un forfait supérieur pour continuer."
 
 #: /chroot/plugins/sg-ai-studio/assets/react-strings.php:115
 msgid ""
 "Insufficient tokens. Please go to {{a}}SiteGround AI Studio{{/a}} to upgrade "
 "or add more tokens."
-msgstr ""
-"tokens insuffisants. Veuillez vous rendre sur SiteGround AI Studio pour "
-"mettre à niveau votre compte ou ajouter des tokens."
+msgstr "Tokens insuffisants. Rendez-vous sur {{a}}SiteGround AI Studio{{/a}} pour mettre à niveau votre compte ou ajouter des tokens."
 
 #: /chroot/plugins/sg-ai-studio/core/Helper/Helper.php:1168
 msgid "Invalid authorization header format."
@@ -2446,3 +2442,30 @@ msgstr "au service SiteGround AI Studio"
 
 msgid "To activate the plugin, you need to sign up for"
 msgstr "Pour activer le plugin, vous devez vous inscrire"
+
+msgid "This feature needs Connector Approval. Approve the AI Agent by SiteGround and the AI plugins on the %s page."
+msgstr "Cette fonctionnalité nécessite l'approbation du connecteur. Approuvez l'agent IA de SiteGround et les plugins IA sur la page %s."
+
+msgid "Tools/Connector Approvals"
+msgstr "Outils/Approbations des connecteurs"
+
+msgid "AI Agent Access for Editors"
+msgstr "Accès des éditeurs à l'AI Agent"
+
+msgid "AI Agent Access for Editors is disabled"
+msgstr "L'accès des éditeurs à l'AI Agent est désactivé"
+
+msgid "AI Agent Access for Editors is enabled"
+msgstr "L'accès des éditeurs à l'AI Agent est activé"
+
+msgid "The AI Agent by SiteGround needs Connector Approval before it can run. Grant it on the {{a}}Tools/Connector Approvals{{/a}} page in WP Admin, then try again."
+msgstr "L'AI Agent de SiteGround nécessite l'approbation du connecteur avant de pouvoir s'exécuter. Accordez-la sur la page {{a}}Outils/Approbations des connecteurs{{/a}} de l'administration WP, puis réessayez."
+
+msgid "When this option is on, users with the Editor role can use the AI Agent chat on this site. The AI Agent acts as the person asking, so it can never do more than they could do themselves in wp-admin. Editors can work with posts, pages, media, comments and categories, but not plugins, themes, settings or the store. If the option is turned off, only Administrators can use the AI Agent."
+msgstr "Lorsque cette option est activée, les utilisateurs ayant le rôle Éditeur peuvent utiliser le chat de l'AI Agent sur ce site. L'AI Agent agit au nom de la personne qui le sollicite : il ne peut donc jamais faire plus que ce qu'elle pourrait faire elle-même dans wp-admin. Les éditeurs peuvent travailler avec les articles, les pages, les médias, les commentaires et les catégories, mais pas avec les plugins, les thèmes, les paramètres ni la boutique. Si l'option est désactivée, seuls les administrateurs peuvent utiliser l'AI Agent."
+
+msgid "Insufficient tokens. Contact your administrator."
+msgstr "Tokens insuffisants. Contactez votre administrateur."
+
+msgid "User"
+msgstr "Utilisateur"

@@ -141,80 +141,40 @@ class Site_Snapshot extends Rest_Controller_Base {
 			'has_theme_json' => function_exists( 'wp_theme_has_theme_json' ) && wp_theme_has_theme_json(),
 			// Reserved for Site Editor / template work, not the block editing gate.
 			'is_block_theme' => function_exists( 'wp_is_block_theme' ) && wp_is_block_theme(),
-			'page_builder'   => $this->detect_page_builder( $theme, $parent ),
+			'page_builders'  => $this->detect_page_builders( $theme, $parent ),
 		);
 	}
 
 	/**
-	 * Detect which page builder is active on the site
+	 * Detect which page builders are active on the site
 	 *
-	 * Detects from active plugins and theme. Returns 'none' explicitly when
-	 * no builder is detected (not null/absent), so the agent can distinguish
+	 * Detects from active plugins and theme. Every builder is checked, since a
+	 * site can run several at once (e.g. Elementor and Beaver Builder). Returns
+	 * an empty array when no builder is detected, so the agent can distinguish
 	 * "no builder" from "not reported".
-	 *
-	 * Check order prioritizes the most common builders first for performance.
 	 *
 	 * @param \WP_Theme      $theme  Active theme object.
 	 * @param \WP_Theme|bool $parent Parent theme object or false if no parent.
-	 * @return string The page builder slug or 'none'.
+	 * @return array Page builder slugs.
 	 */
-	private function detect_page_builder( $theme, $parent ) {
-		// Elementor - most popular, check first.
-		if ( class_exists( '\Elementor\Plugin' ) ) {
-			return 'elementor';
-		}
-
+	private function detect_page_builders( $theme, $parent ) {
 		// Get theme names once.
-		$theme_name   = $theme->get( 'Name' );
-		$parent_name  = $parent ? $parent->get( 'Name' ) : '';
+		$theme_names = array_filter( array( $theme->get( 'Name' ), $parent ? $parent->get( 'Name' ) : '' ) );
 
-		// Divi - check theme or builder plugin.
-		if ( 'Divi' === $theme_name || 'Divi' === $parent_name || 'Extra' === $theme_name || 'Extra' === $parent_name ) {
-			return 'divi';
-		}
+		$builders = array(
+			'elementor'        => class_exists( '\Elementor\Plugin' ),
+			// Divi - theme (Divi or Extra) or the standalone Divi Builder plugin.
+			'divi'             => (bool) array_intersect( array( 'Divi', 'Extra' ), $theme_names ) || function_exists( 'et_divi_fonts_url' ),
+			'wpbakery'         => class_exists( '\Vc_Manager' ) || function_exists( 'vc_is_inline' ),
+			'avada'            => in_array( 'Avada', $theme_names, true ),
+			'beaver-builder'   => class_exists( '\FLBuilder' ) || class_exists( '\FLBuilderModel' ),
+			'bricks'           => in_array( 'Bricks', $theme_names, true ),
+			'oxygen'           => defined( 'CT_VERSION' ) || function_exists( 'oxygen_vsb_init' ),
+			'thrive-architect' => function_exists( 'tve_in_architect' ),
+			'cornerstone'      => function_exists( 'cornerstone_is_permalink_endpoint' ),
+		);
 
-		// Divi Builder plugin (standalone).
-		if ( function_exists( 'et_divi_fonts_url' ) ) {
-			return 'divi';
-		}
-
-		// WPBakery - very common, check early.
-		if ( class_exists( '\Vc_Manager' ) || function_exists( 'vc_is_inline' ) ) {
-			return 'wpbakery';
-		}
-
-		// Avada/Fusion - popular theme.
-		if ( 'Avada' === $theme_name || 'Avada' === $parent_name ) {
-			return 'avada';
-		}
-
-		// Beaver Builder.
-		if ( class_exists( '\FLBuilder' ) || class_exists( '\FLBuilderModel' ) ) {
-			return 'beaver-builder';
-		}
-
-		// Bricks - growing in popularity.
-		if ( 'Bricks' === $theme_name || 'Bricks' === $parent_name ) {
-			return 'bricks';
-		}
-
-		// Oxygen - check constant first (more reliable).
-		if ( defined( 'CT_VERSION' ) || function_exists( 'oxygen_vsb_init' ) ) {
-			return 'oxygen';
-		}
-
-		// Thrive Architect.
-		if ( function_exists( 'tve_in_architect' ) ) {
-			return 'thrive-architect';
-		}
-
-		// Cornerstone (ThemeCo).
-		if ( function_exists( 'cornerstone_is_permalink_endpoint' ) ) {
-			return 'cornerstone';
-		}
-
-		// No page builder detected.
-		return 'none';
+		return array_keys( array_filter( $builders ) );
 	}
 
 	/**

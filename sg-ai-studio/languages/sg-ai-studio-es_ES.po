@@ -977,9 +977,7 @@ msgstr "No tienes suficientes tokens de IA. Actualiza tu plan para continuar."
 msgid ""
 "Insufficient tokens. Please go to {{a}}SiteGround AI Studio{{/a}} to upgrade "
 "or add more tokens."
-msgstr ""
-"No hay suficientes tokens. Diríjase a {{a}}SiteGround AI Studio{{/a}} para "
-"actualizar o agregar más tokens."
+msgstr "No hay suficientes tokens. Ve a {{a}}SiteGround AI Studio{{/a}} para actualizar tu plan o agregar más tokens."
 
 #: /chroot/plugins/sg-ai-studio/core/Helper/Helper.php:1168
 msgid "Invalid authorization header format."
@@ -2434,3 +2432,30 @@ msgstr "el servicio SiteGround AI Studio"
 
 msgid "To activate the plugin, you need to sign up for"
 msgstr "Para activar el plugin, tienes que registrarte en"
+
+msgid "This feature needs Connector Approval. Approve the AI Agent by SiteGround and the AI plugins on the %s page."
+msgstr "Esta función requiere la aprobación del conector. Aprueba el agente de IA de SiteGround y los plugins de IA en la página %s."
+
+msgid "Tools/Connector Approvals"
+msgstr "Herramientas/Aprobación de conectores"
+
+msgid "AI Agent Access for Editors"
+msgstr "Acceso de editores al AI Agent"
+
+msgid "AI Agent Access for Editors is disabled"
+msgstr "El acceso de editores al AI Agent está deshabilitado"
+
+msgid "AI Agent Access for Editors is enabled"
+msgstr "El acceso de editores al AI Agent está habilitado"
+
+msgid "The AI Agent by SiteGround needs Connector Approval before it can run. Grant it on the {{a}}Tools/Connector Approvals{{/a}} page in WP Admin, then try again."
+msgstr "El AI Agent de SiteGround necesita la aprobación del conector antes de poder ejecutarse. Concédela en la página {{a}}Herramientas/Aprobación de conectores{{/a}} del administrador de WP y vuelve a intentarlo."
+
+msgid "When this option is on, users with the Editor role can use the AI Agent chat on this site. The AI Agent acts as the person asking, so it can never do more than they could do themselves in wp-admin. Editors can work with posts, pages, media, comments and categories, but not plugins, themes, settings or the store. If the option is turned off, only Administrators can use the AI Agent."
+msgstr "Cuando esta opción está activada, los usuarios con el rol de Editor pueden usar el chat del AI Agent en este sitio. El AI Agent actúa en nombre de la persona que lo solicita, por lo que nunca puede hacer más de lo que esa persona podría hacer por sí misma en wp-admin. Los editores pueden trabajar con entradas, páginas, medios, comentarios y categorías, pero no con plugins, temas, ajustes ni la tienda. Si desactivas la opción, solo los administradores podrán usar el AI Agent."
+
+msgid "Insufficient tokens. Contact your administrator."
+msgstr "No hay suficientes tokens. Contacta con tu administrador."
+
+msgid "User"
+msgstr "Usuario"

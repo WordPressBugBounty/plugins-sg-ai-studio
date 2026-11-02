@@ -58,7 +58,7 @@ class Settings_Page extends Rest_Controller_Base {
 				array(
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'get_connected' ),
-					'permission_callback' => array( $this, 'ai_studio_settings_permissions_check' ),
+					'permission_callback' => array( $this, 'ai_studio_agent_permissions_check' ),
 					'description'         => 'Retrieves the current connected status.',
 				),
 				array(
@@ -177,6 +177,33 @@ class Settings_Page extends Rest_Controller_Base {
 				),
 			)
 		);
+
+		// Register Editor access endpoint.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->base . '/editor-access',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'get_editor_access' ),
+					'permission_callback' => array( $this, 'ai_studio_settings_permissions_check' ),
+					'description'         => 'Retrieves the Editor access setting and the number of Editors.',
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( $this, 'update_editor_access' ),
+					'permission_callback' => array( $this, 'ai_studio_settings_permissions_check' ),
+					'description'         => 'Enables or disables AI Agent access for Editors.',
+					'args'                => array(
+						'enabled' => array(
+							'type'              => 'boolean',
+							'required'          => true,
+							'sanitize_callback' => 'rest_sanitize_boolean',
+						),
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -203,6 +230,16 @@ class Settings_Page extends Rest_Controller_Base {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Check if a user has permission to use the AI Agent chat
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool True if the user may use the AI Agent, false otherwise.
+	 */
+	public function ai_studio_agent_permissions_check( $request ) {
+		return Helper::can_use_agent();
 	}
 
 	/**
@@ -767,6 +804,43 @@ class Settings_Page extends Rest_Controller_Base {
 	 */
 	public static function is_chat_bubble_fe_hidden() {
 		return (bool) get_option( 'sg_ai_studio_chat_bubble_fe_hidden', false );
+	}
+
+	/**
+	 * Get Editor access setting
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function get_editor_access( $request ) {
+		$users = count_users();
+
+		return new WP_REST_Response(
+			array(
+				'enabled'       => Helper::is_editor_access_enabled(),
+				'editors_count' => (int) ( $users['avail_roles']['editor'] ?? 0 ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update Editor access setting
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response Response object.
+	 */
+	public function update_editor_access( $request ) {
+		$enabled = (bool) $request->get_param( 'enabled' );
+
+		update_option( 'sg_ai_studio_editor_access', (int) $enabled );
+
+		return new WP_REST_Response(
+			array(
+				'enabled' => $enabled,
+			),
+			200
+		);
 	}
 
 }

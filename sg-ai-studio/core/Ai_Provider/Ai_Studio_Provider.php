@@ -40,6 +40,21 @@ class Ai_Studio_Provider extends AbstractApiProvider {
 	}
 
 	/**
+	 * Extracts token counts from a decoded AI Studio API response.
+	 *
+	 * @param array $response The decoded response body.
+	 * @return array{input: int|null, output: int|null} Token counts.
+	 */
+	public static function tokenCountsFromResponse( array $response ): array {
+		$usage = isset( $response['usage'] ) && is_array( $response['usage'] ) ? $response['usage'] : $response;
+
+		return array(
+			'input'  => isset( $usage['input_tokens'] ) && is_numeric( $usage['input_tokens'] ) ? (int) $usage['input_tokens'] : null,
+			'output' => isset( $usage['output_tokens'] ) && is_numeric( $usage['output_tokens'] ) ? (int) $usage['output_tokens'] : null,
+		);
+	}
+
+	/**
 	 * Creates a model instance based on the model metadata.
 	 *
 	 * Supports text generation and image generation.

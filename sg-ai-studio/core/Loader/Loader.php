@@ -287,6 +287,11 @@ class Loader {
 
 		// Enqueue CSS to hide API key field on Connectors page.
 		add_action( 'admin_enqueue_scripts', array( $this->ai_provider, 'enqueue_connectors_css' ) );
+
+		add_action( 'wp_connectors_init', array( $this->ai_provider, 'add_connector_plugin_file' ) );
+		add_filter( 'wpai_request_log_providers', array( $this->ai_provider, 'filter_request_log_providers' ) );
+		add_filter( 'wpai_request_log_kind', array( $this->ai_provider, 'filter_request_log_kind' ), 10, 3 );
+		add_filter( 'wpai_request_log_tokens', array( $this->ai_provider, 'filter_request_log_tokens' ), 10, 2 );
 	}
 
 	/**
@@ -298,8 +303,10 @@ class Loader {
 		// Add the install action.
 		add_action( 'upgrader_process_complete', array( $this->install_service, 'install' ) );
 
-		// Force the installation process if it is not completed.
-		if ( false === get_option( 'sg_ai_studio_version', false ) ) {
+		// Force the installation process if it is not completed. The upgrader
+		// hook runs with the old plugin code loaded, so pending installs from
+		// the new version are picked up on the next request instead.
+		if ( $this->install_service->install_required() ) {
 			add_action( 'init', array( $this->install_service, 'install' ) );
 		}
 	}
