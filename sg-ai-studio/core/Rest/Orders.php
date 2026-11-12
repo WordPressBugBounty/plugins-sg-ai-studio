@@ -1424,16 +1424,26 @@ class Orders extends Rest_Controller_Base {
 			'order'   => $request['order'],
 		);
 
+		$id_filters = array();
+
 		if ( isset( $request['search'] ) && ! empty( $request['search'] ) ) {
-			$args['search'] = $request['search'];
+			$search = \wc_clean( \wp_unslash( $request['search'] ) );
+
+			if ( $this->is_hpos_enabled() ) {
+				// HPOS supports full order search (addresses, emails, items) natively.
+				$args['s'] = $search;
+			} else {
+				// On CPT storage 's' would only search post title/content, so resolve IDs via the order search.
+				$id_filters[] = array_map( 'absint', \wc_order_search( $search ) );
+			}
 		}
 
-		if ( isset( $request['after'] ) && ! empty( $request['after'] ) ) {
-			$args['date_created'] = '>=' . $request['after'];
+		$date_created = $this->build_date_created_query( $request['after'] ?? '', $request['before'] ?? '' );
+		if ( is_wp_error( $date_created ) ) {
+			return $date_created;
 		}
-
-		if ( isset( $request['before'] ) && ! empty( $request['before'] ) ) {
-			$args['date_created'] = '<=' . $request['before'];
+		if ( '' !== $date_created ) {
+			$args['date_created'] = $date_created;
 		}
 
 		if ( isset( $request['exclude'] ) && ! empty( $request['exclude'] ) ) {
@@ -1442,7 +1452,7 @@ class Orders extends Rest_Controller_Base {
 		}
 
 		if ( isset( $request['include'] ) && ! empty( $request['include'] ) ) {
-			$args['include'] = $request['include'];
+			$id_filters[] = array_map( 'absint', (array) $request['include'] );
 		}
 
 		if ( isset( $request['offset'] ) && ! empty( $request['offset'] ) ) {
@@ -1466,7 +1476,18 @@ class Orders extends Rest_Controller_Base {
 		}
 
 		if ( isset( $request['product'] ) && ! empty( $request['product'] ) ) {
-			$args['product'] = $request['product'];
+			$id_filters[] = $this->get_order_ids_by_product( absint( $request['product'] ) );
+		}
+
+		if ( ! empty( $id_filters ) ) {
+			$order_ids = array_shift( $id_filters );
+			foreach ( $id_filters as $ids ) {
+				$order_ids = array_intersect( $order_ids, $ids );
+			}
+			$order_ids = array_values( array_unique( array_filter( $order_ids ) ) );
+
+			// Force an empty result when no order matches, instead of dropping the restriction.
+			$args['post__in'] = ! empty( $order_ids ) ? $order_ids : array( 0 );
 		}
 
 		$orders       = \wc_get_orders( $args );
@@ -1507,6 +1528,92 @@ class Orders extends Rest_Controller_Base {
 		);
 
 		return $response;
+	}
+
+	/**
+	 * Check whether WooCommerce HPOS (custom order tables) is the active order storage.
+	 *
+	 * @return bool
+	 */
+	protected function is_hpos_enabled() {
+		return class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			&& \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	/**
+	 * Get the IDs of orders that contain a given product or variation as a line item.
+	 *
+	 * Order items live in the same tables for both CPT and HPOS storage.
+	 *
+	 * @param int $product_id Product or variation ID.
+	 * @return int[] Order IDs.
+	 */
+	protected function get_order_ids_by_product( $product_id ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$order_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT items.order_id
+				FROM {$wpdb->prefix}woocommerce_order_items AS items
+				INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS meta
+					ON meta.order_item_id = items.order_item_id
+				WHERE items.order_item_type = 'line_item'
+				AND meta.meta_key IN ( '_product_id', '_variation_id' )
+				AND meta.meta_value = %d",
+				$product_id
+			)
+		);
+
+		return array_map( 'absint', $order_ids );
+	}
+
+	/**
+	 * Build the date_created query value for wc_get_orders() from the after/before params.
+	 *
+	 * Dates are converted to timestamps (interpreted in the site timezone when no offset is given)
+	 * so WooCommerce applies second precision and ISO strings with fractional seconds still parse.
+	 *
+	 * @param string $after  ISO8601 date, orders created on or after it.
+	 * @param string $before ISO8601 date, orders created on or before it.
+	 * @return string|WP_Error Query value ('' when no date filter), or error on an invalid date.
+	 */
+	protected function build_date_created_query( $after, $before ) {
+		$timestamps = array();
+		$params     = array(
+			'after'  => $after,
+			'before' => $before,
+		);
+
+		foreach ( $params as $param => $value ) {
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			try {
+				$timestamps[ $param ] = \wc_string_to_datetime( $value )->getTimestamp();
+			} catch ( \Exception $e ) {
+				return new WP_Error(
+					'rest_invalid_param',
+					sprintf( 'Invalid date for parameter "%s".', $param ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
+		if ( isset( $timestamps['after'], $timestamps['before'] ) ) {
+			return $timestamps['after'] . '...' . $timestamps['before'];
+		}
+
+		if ( isset( $timestamps['after'] ) ) {
+			return '>=' . $timestamps['after'];
+		}
+
+		if ( isset( $timestamps['before'] ) ) {
+			return '<=' . $timestamps['before'];
+		}
+
+		return '';
 	}
 
 	/**

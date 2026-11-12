@@ -677,7 +677,7 @@ class Comments extends Rest_Controller_Base {
 		}
 
 		// Prepare comment data.
-		$comment_data               = $this->prepare_comment_for_database( $request );
+		$comment_data               = $this->prepare_comment_for_database( $request, true );
 		$comment_data['comment_ID'] = $comment_id;
 
 		// Update the comment.
@@ -1190,10 +1190,11 @@ class Comments extends Rest_Controller_Base {
 	/**
 	 * Prepare a comment for database insertion
 	 *
-	 * @param WP_REST_Request $request Request object.
+	 * @param WP_REST_Request $request   Request object.
+	 * @param bool            $is_update Whether the comment is being updated (skips defaulting author to current user).
 	 * @return array $prepared_comment.
 	 */
-	protected function prepare_comment_for_database( $request ) {
+	protected function prepare_comment_for_database( $request, $is_update = false ) {
 		$prepared_comment = array();
 
 		// Comment content.
@@ -1252,7 +1253,8 @@ class Comments extends Rest_Controller_Base {
 		}
 
 		// Set current user as author if logged in and no author info provided.
-		if ( is_user_logged_in() && ! isset( $prepared_comment['comment_author'] ) ) {
+		// Only on create: updates must keep the existing author unless explicitly provided.
+		if ( ! $is_update && is_user_logged_in() && ! isset( $prepared_comment['comment_author'] ) ) {
 			$user                                     = wp_get_current_user();
 			$prepared_comment['user_id']              = $user->ID;
 			$prepared_comment['comment_author']       = $user->display_name;

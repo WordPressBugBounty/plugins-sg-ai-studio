@@ -141,8 +141,6 @@ class Loader {
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		// Add floating chat widget to admin footer.
 		add_action( 'admin_print_footer_scripts', array( $this->admin, 'add_floating_chat' ), 9 );
-		// Reorder submenu pages.
-		add_filter( 'menu_order', array( $this->admin, 'reorder_submenu_pages' ) );
 	}
 
 	/**
@@ -194,6 +192,9 @@ class Loader {
 		// Register REST API endpoints.
 		add_action( 'rest_api_init', array( $this->rest, 'register_rest_routes' ) );
 		add_filter( 'rest_post_dispatch', array( $this->rest, 'apply_fields_filter' ), 9, 3 );
+
+		// Apply price range and sort order to the product list endpoint's WooCommerce queries.
+		add_filter( 'woocommerce_product_data_store_cpt_get_products_query', array( $this->rest, 'filter_products_query' ), 10, 2 );
 	}
 
 	/**

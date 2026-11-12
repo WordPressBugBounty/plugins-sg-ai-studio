@@ -672,9 +672,7 @@ class Helper {
 	 * @return string The required capability.
 	 */
 	public static function get_agent_request_capability( $request ) {
-		$route = ltrim( (string) $request->get_route(), '/' );
-		$parts = explode( '/', $route );
-		$area  = isset( $parts[1] ) ? $parts[1] : '';
+		$area = self::get_agent_request_area( $request );
 
 		// The entity endpoint edits posts, pages and templates alike.
 		if ( 'entity' === $area ) {
@@ -695,9 +693,47 @@ class Helper {
 	}
 
 	/**
+	 * Resolve the AI Agent REST area of a request.
+	 *
+	 * @since 1.3.3
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return string The route area, or an empty string.
+	 */
+	public static function get_agent_request_area( $request ) {
+		$route = ltrim( (string) $request->get_route(), '/' );
+		$parts = explode( '/', $route );
+
+		return isset( $parts[1] ) ? $parts[1] : '';
+	}
+
+	/**
+	 * Token sources allowed to act without a WP user.
+	 *
+	 * @since 1.3.3
+	 *
+	 * @return string[] Allowed _src values.
+	 */
+	public static function get_userless_token_sources() {
+		return array( 'ai-studio', 'system' );
+	}
+
+	/**
+	 * Areas a token with neither _uid nor an allowed _src may still reach.
+	 *
+	 * @since 1.3.3
+	 *
+	 * @return string[] Read-only route areas.
+	 */
+	public static function get_unattributed_token_areas() {
+		return array( 'ping' );
+	}
+
+	/**
 	 * Act as the chatting user carried in the AI Studio token.
 	 *
-	 * Tokens without a user (older plugins, system calls) are allowed as before.
+	 * Tokens without a user must carry an allowed _src claim. Tokens with
+	 * neither may only reach the read-only areas.
 	 *
 	 * @since 1.3.2
 	 *
@@ -707,7 +743,21 @@ class Helper {
 	 */
 	public static function authorize_token_user( $payload, $request ) {
 		if ( empty( $payload['_uid'] ) ) {
-			return true;
+			$source = isset( $payload['_src'] ) && is_string( $payload['_src'] ) ? $payload['_src'] : '';
+
+			if ( in_array( $source, self::get_userless_token_sources(), true ) ) {
+				return true;
+			}
+
+			if ( in_array( self::get_agent_request_area( $request ), self::get_unattributed_token_areas(), true ) ) {
+				return true;
+			}
+
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'This request needs a signed-in user.', 'sg-ai-studio' ),
+				array( 'status' => 403 )
+			);
 		}
 
 		$user = get_userdata( (int) $payload['_uid'] );

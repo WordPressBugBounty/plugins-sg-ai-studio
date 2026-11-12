@@ -20,6 +20,7 @@ use SG_AI_Studio\Helper\Helper;
 class Posts extends Rest_Controller_Base {
 	use Revisions;
 	use Object_Terms;
+	use Meta_Support;
 
 	/**
 	 * REST API base
@@ -74,7 +75,7 @@ class Posts extends Rest_Controller_Base {
 						),
 						'embed_terms' => $this->get_embed_terms_arg(),
 					),
-					'description'         => 'Retrieves a specific post by ID. Pass embed_terms=true to get the assigned terms of every taxonomy as named terms instead of only the category and tag IDs.',
+					'description'         => 'Retrieves a specific post (or custom post type item) by ID, including its custom fields under meta. Pass embed_terms=true to get the assigned terms of every taxonomy as named terms instead of only the category and tag IDs.',
 				),
 				array(
 					'methods'             => 'PUT',
@@ -533,8 +534,9 @@ class Posts extends Rest_Controller_Base {
 					'enum'        => array( 'open', 'closed' ),
 				),
 				'meta'           => array(
-					'description' => 'Meta fields.',
-					'type'        => 'object',
+					'description' => 'Custom fields of the post, keyed by meta key, with values exactly as stored so they can be written back through meta unchanged. Present only on single reads. Protected internal fields (keys starting with an underscore) are omitted unless registered with show_in_rest. Null when the user cannot edit the post. Use the meta_fields of GET /types/{type} to discover which fields a post type has.',
+					'type'        => array( 'object', 'null' ),
+					'readonly'    => true,
 				),
 				'categories'     => array(
 					'description' => 'The categories assigned to the post.',
@@ -685,6 +687,17 @@ class Posts extends Rest_Controller_Base {
 		// Prepare post data.
 		$post_data       = $this->prepare_post_for_database( $request );
 		$post_data['ID'] = $post_id;
+
+		// The post type and author defaults only make sense on create. Applied to
+		// an update they would turn a custom post type item into a post and hand
+		// it over to the current user.
+		if ( ! isset( $request['post_type'] ) ) {
+			unset( $post_data['post_type'] );
+		}
+
+		if ( ! isset( $request['author'] ) ) {
+			unset( $post_data['post_author'] );
+		}
 
 		// Update the post.
 		$updated = wp_update_post( $post_data, true );
@@ -1226,9 +1239,11 @@ class Posts extends Rest_Controller_Base {
 		}
 
 		// Omit heavy fields in list context to keep collection responses small.
-		// Single reads (context 'view') retain full content.
+		// Single reads (context 'view') retain full content and custom fields.
 		if ( 'list' === $context ) {
 			unset( $data['content'], $data['excerpt'] );
+		} else {
+			$data['meta'] = $this->get_post_meta_map( $post );
 		}
 
 		return $data;

@@ -153,7 +153,7 @@ class Products extends Rest_Controller_Base {
 	 * @return array
 	 */
 	protected function get_create_product_args() {
-		return array(
+		$args = array(
 			'name'               => array(
 				'description' => 'Product name.',
 				'type'        => 'string',
@@ -305,6 +305,8 @@ class Products extends Rest_Controller_Base {
 				'required'    => false,
 			),
 		);
+
+		return array_merge( $args, $this->get_sale_date_args() );
 	}
 
 	/**
@@ -322,7 +324,39 @@ class Products extends Rest_Controller_Base {
 			'required'    => true,
 		);
 
-		return $args;
+		return array_merge( $args, $this->get_sale_date_args() );
+	}
+
+	/**
+	 * Get the scheduled sale arguments shared by create, update and batch.
+	 *
+	 * @return array
+	 */
+	protected function get_sale_date_args() {
+		$rules = 'Requires a sale_price, sent in the same request or already stored. Empty string or null clears the date. Not supported on variable products, set the sale on each variation instead.';
+
+		return array(
+			'date_on_sale_from'     => array(
+				'description' => 'Start of a scheduled sale, ISO 8601 in the site timezone (e.g. 2026-11-27 or 2026-11-27T09:00:00). A date without a time starts at 00:00:00 of that day. Until then the regular price is shown. ' . $rules,
+				'type'        => array( 'string', 'null' ),
+				'required'    => false,
+			),
+			'date_on_sale_to'       => array(
+				'description' => 'End of a scheduled sale, ISO 8601 in the site timezone (e.g. 2026-11-30). A date without a time is inclusive and ends at 23:59:59 of that day. WooCommerce then ends the sale on its own. Must not be before date_on_sale_from. Clearing it keeps the sale active with no end date. ' . $rules,
+				'type'        => array( 'string', 'null' ),
+				'required'    => false,
+			),
+			'date_on_sale_from_gmt' => array(
+				'description' => 'Same as date_on_sale_from, but in UTC. Takes precedence over date_on_sale_from when both are sent.',
+				'type'        => array( 'string', 'null' ),
+				'required'    => false,
+			),
+			'date_on_sale_to_gmt'   => array(
+				'description' => 'Same as date_on_sale_to, but in UTC. Takes precedence over date_on_sale_to when both are sent.',
+				'type'        => array( 'string', 'null' ),
+				'required'    => false,
+			),
+		);
 	}
 
 	/**
@@ -373,13 +407,22 @@ class Products extends Rest_Controller_Base {
 				'required'    => false,
 			),
 			'category'     => array(
-				'description' => 'Limit result set to products assigned a specific category ID.',
+				'description' => 'Limit result set to products assigned specific categories. Accepts a category ID, a slug, or a comma-separated list of either.',
 				'type'        => 'string',
 				'required'    => false,
 			),
 			'tag'          => array(
-				'description' => 'Limit result set to products assigned a specific tag ID.',
+				'description' => 'Limit result set to products assigned specific tags. Accepts a tag ID, a slug, or a comma-separated list of either.',
 				'type'        => 'string',
+				'required'    => false,
+			),
+			'include'      => array(
+				'description' => 'Limit result set to specific product IDs.',
+				'type'        => 'array',
+				'items'       => array(
+					'type' => 'integer',
+				),
+				'default'     => array(),
 				'required'    => false,
 			),
 			'min_price'    => array(
@@ -542,9 +585,29 @@ class Products extends Rest_Controller_Base {
 					'readonly'    => true,
 				),
 				'on_sale'            => array(
-					'description' => 'Shows if the product is on sale.',
+					'description' => 'Shows if the product is on sale right now. False before date_on_sale_from and after date_on_sale_to.',
 					'type'        => 'boolean',
 					'readonly'    => true,
+				),
+				'date_on_sale_from'     => array(
+					'description' => 'Start of the scheduled sale in the site timezone, null when not scheduled.',
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+				),
+				'date_on_sale_from_gmt' => array(
+					'description' => 'Start of the scheduled sale in UTC, null when not scheduled.',
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+				),
+				'date_on_sale_to'       => array(
+					'description' => 'End of the scheduled sale in the site timezone, null when the sale has no end date. The sale runs until this moment, usually 23:59:59 of the end day.',
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
+				),
+				'date_on_sale_to_gmt'   => array(
+					'description' => 'End of the scheduled sale in UTC, null when the sale has no end date.',
+					'type'        => array( 'string', 'null' ),
+					'format'      => 'date-time',
 				),
 				'purchasable'        => array(
 					'description' => 'Shows if the product can be bought.',
@@ -908,7 +971,11 @@ class Products extends Rest_Controller_Base {
 		}
 
 		$product = new \WC_Product_Simple();
-		$this->update_product_data( $product, $request );
+		$result  = $this->update_product_data( $product, $request );
+
+		if ( is_wp_error( $result ) ) {
+			return $this->get_invalid_product_data_response( $result );
+		}
 
 		$product_id = $product->save();
 
@@ -934,15 +1001,20 @@ class Products extends Rest_Controller_Base {
 			\wp_cache_flush();
 		}
 
-		// Return lean response for write operation.
+		// Return lean response for write operation, with the sale state so a schedule can be confirmed.
 		return new WP_REST_Response(
-			array(
-				'success'       => true,
-				'id'            => $product->get_id(),
-				'name'          => $product->get_name(),
-				'status'        => $product->get_status(),
-				'permalink'     => $product->get_permalink(),
-				'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
+			array_merge(
+				array(
+					'success'       => true,
+					'id'            => $product->get_id(),
+					'name'          => $product->get_name(),
+					'status'        => $product->get_status(),
+					'permalink'     => $product->get_permalink(),
+					'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
+					'sale_price'    => $product->get_sale_price(),
+					'on_sale'       => $product->is_on_sale(),
+				),
+				$this->get_sale_date_fields( $product )
 			),
 			201
 		);
@@ -978,7 +1050,12 @@ class Products extends Rest_Controller_Base {
 			);
 		}
 
-		$this->update_product_data( $product, $request );
+		$result = $this->update_product_data( $product, $request );
+
+		if ( is_wp_error( $result ) ) {
+			return $this->get_invalid_product_data_response( $result );
+		}
+
 		$product->save();
 
 		// Log the activity.
@@ -993,15 +1070,20 @@ class Products extends Rest_Controller_Base {
 			\wp_cache_flush();
 		}
 
-		// Return lean response for write operation.
+		// Return lean response for write operation, with the sale state so a schedule can be confirmed.
 		return new WP_REST_Response(
-			array(
-				'success'       => true,
-				'id'            => $product->get_id(),
-				'name'          => $product->get_name(),
-				'status'        => $product->get_status(),
-				'permalink'     => $product->get_permalink(),
-				'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
+			array_merge(
+				array(
+					'success'       => true,
+					'id'            => $product->get_id(),
+					'name'          => $product->get_name(),
+					'status'        => $product->get_status(),
+					'permalink'     => $product->get_permalink(),
+					'date_modified' => $product->get_date_modified() ? $product->get_date_modified()->format( 'c' ) : null,
+					'sale_price'    => $product->get_sale_price(),
+					'on_sale'       => $product->is_on_sale(),
+				),
+				$this->get_sale_date_fields( $product )
 			),
 			200
 		);
@@ -1100,8 +1182,13 @@ class Products extends Rest_Controller_Base {
 			'order'   => $request['order'],
 		);
 
-		if ( isset( $request['search'] ) && ! empty( $request['search'] ) ) {
-			$args['search'] = $request['search'];
+		// WP_Query searches via `s`; `search` is not a recognised query var and would be dropped.
+		if ( isset( $request['search'] ) && '' !== trim( (string) $request['search'] ) ) {
+			$args['s'] = $request['search'];
+		}
+
+		if ( ! empty( $request['include'] ) ) {
+			$args['include'] = array_values( array_filter( array_map( 'absint', (array) $request['include'] ) ) );
 		}
 
 		if ( isset( $request['sku'] ) && ! empty( $request['sku'] ) ) {
@@ -1113,19 +1200,11 @@ class Products extends Rest_Controller_Base {
 		}
 
 		if ( isset( $request['category'] ) && ! empty( $request['category'] ) ) {
-			$args['category'] = array( $request['category'] );
+			$args = $this->add_term_query_arg( $args, $request['category'], 'category', 'product_category_id' );
 		}
 
 		if ( isset( $request['tag'] ) && ! empty( $request['tag'] ) ) {
-			$args['tag'] = array( $request['tag'] );
-		}
-
-		if ( isset( $request['min_price'] ) && ! empty( $request['min_price'] ) ) {
-			$args['min_price'] = $request['min_price'];
-		}
-
-		if ( isset( $request['max_price'] ) && ! empty( $request['max_price'] ) ) {
-			$args['max_price'] = $request['max_price'];
+			$args = $this->add_term_query_arg( $args, $request['tag'], 'tag', 'product_tag_id' );
 		}
 
 		if ( isset( $request['stock_status'] ) && ! empty( $request['stock_status'] ) ) {
@@ -1138,6 +1217,16 @@ class Products extends Rest_Controller_Base {
 			$args['type'] = \SG_AI_Studio\Helper\Helper::get_all_product_types();
 		}
 
+		// Price filtering and non-native sort keys cannot be expressed as wc_get_products() query vars
+		// (it discards any meta_query passed in), so they travel under a custom query var and are
+		// applied to the generated WP_Query args by filter_products_query().
+		$args['sg_ai_studio_list_query'] = array(
+			'orderby'   => $request['orderby'],
+			'order'     => $request['order'],
+			'min_price' => isset( $request['min_price'] ) && is_numeric( $request['min_price'] ) ? (float) $request['min_price'] : null,
+			'max_price' => isset( $request['max_price'] ) && is_numeric( $request['max_price'] ) ? (float) $request['max_price'] : null,
+		);
+
 		$products       = \wc_get_products( $args );
 		$total_products = \wc_get_products(
 			array_merge(
@@ -1148,6 +1237,7 @@ class Products extends Rest_Controller_Base {
 				)
 			)
 		);
+
 		$total_products = count( $total_products );
 
 		$embed_terms = (bool) $request['embed_terms'];
@@ -1185,6 +1275,137 @@ class Products extends Rest_Controller_Base {
 		);
 
 		return $response;
+	}
+
+	/**
+	 * Add a category/tag filter to wc_get_products() args.
+	 *
+	 * Wc_get_products() matches `category`/`tag` by slug only, so numeric IDs are routed
+	 * to the `product_category_id`/`product_tag_id` query vars instead.
+	 *
+	 * @param array  $args     Query args for wc_get_products().
+	 * @param string $value    Requested value: an ID, a slug, or a comma-separated list of either.
+	 * @param string $slug_key Query var that matches by slug.
+	 * @param string $id_key   Query var that matches by term ID.
+	 * @return array
+	 */
+	private function add_term_query_arg( $args, $value, $slug_key, $id_key ) {
+		$terms = array_filter( array_map( 'trim', explode( ',', (string) $value ) ), 'strlen' );
+		$ids   = array();
+		$slugs = array();
+
+		foreach ( $terms as $term ) {
+			if ( ctype_digit( $term ) ) {
+				$ids[] = (int) $term;
+				continue;
+			}
+
+			$slugs[] = sanitize_title( $term );
+		}
+
+		// WooCommerce honours only one of the two keys, so resolve IDs to slugs when both are given.
+		if ( ! empty( $ids ) && ! empty( $slugs ) ) {
+			$taxonomy = 'category' === $slug_key ? 'product_cat' : 'product_tag';
+
+			foreach ( $ids as $term_id ) {
+				$term = get_term( $term_id, $taxonomy );
+
+				if ( $term && ! is_wp_error( $term ) ) {
+					$slugs[] = $term->slug;
+				}
+			}
+
+			$ids = array();
+		}
+
+		if ( ! empty( $slugs ) ) {
+			$args[ $slug_key ] = $slugs;
+		} elseif ( ! empty( $ids ) ) {
+			$args[ $id_key ] = $ids;
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Apply price range and sort order to the WP_Query args generated by wc_get_products().
+	 *
+	 * Hooked to `woocommerce_product_data_store_cpt_get_products_query`. Only acts on queries
+	 * issued by get_products(), which carry the `sg_ai_studio_list_query` query var.
+	 *
+	 * @param array $wp_query_args WP_Query args built by the WooCommerce product data store.
+	 * @param array $query_vars    Query vars passed to wc_get_products().
+	 * @return array
+	 */
+	public function filter_products_query( $wp_query_args, $query_vars ) {
+		if ( empty( $query_vars['sg_ai_studio_list_query'] ) || ! is_array( $query_vars['sg_ai_studio_list_query'] ) ) {
+			return $wp_query_args;
+		}
+
+		// WooCommerce copies unknown query vars into the WP_Query args; this one is ours only.
+		unset( $wp_query_args['sg_ai_studio_list_query'] );
+
+		$list_query = $query_vars['sg_ai_studio_list_query'];
+
+		$order = 'asc' === strtolower( (string) $list_query['order'] ) ? 'ASC' : 'DESC';
+
+		$meta_sort_keys = array(
+			'price'      => '_price',
+			'popularity' => 'total_sales',
+			'rating'     => '_wc_average_rating',
+		);
+
+		switch ( $list_query['orderby'] ) {
+			case 'id':
+				$wp_query_args['orderby'] = 'ID';
+				break;
+			case 'slug':
+				$wp_query_args['orderby'] = 'name';
+				break;
+			case 'include':
+				$wp_query_args['orderby'] = 'post__in';
+				break;
+			case 'price':
+			case 'popularity':
+			case 'rating':
+				$wp_query_args['meta_key'] = $meta_sort_keys[ $list_query['orderby'] ]; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				$wp_query_args['orderby']  = array(
+					'meta_value_num' => $order,
+					'ID'             => $order,
+				);
+				break;
+		}
+
+		$wp_query_args['order'] = $order;
+
+		$min_price = $list_query['min_price'];
+		$max_price = $list_query['max_price'];
+
+		if ( null !== $min_price || null !== $max_price ) {
+			$price_clause = array(
+				'key'  => '_price',
+				'type' => 'DECIMAL(19,4)',
+			);
+
+			$price_clause['value']   = $max_price;
+			$price_clause['compare'] = '<=';
+
+			if ( null !== $min_price && null !== $max_price ) {
+				$price_clause['value']   = array( $min_price, $max_price );
+				$price_clause['compare'] = 'BETWEEN';
+			} elseif ( null !== $min_price ) {
+				$price_clause['value']   = $min_price;
+				$price_clause['compare'] = '>=';
+			}
+
+			if ( ! isset( $wp_query_args['meta_query'] ) || ! is_array( $wp_query_args['meta_query'] ) ) {
+				$wp_query_args['meta_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			}
+
+			$wp_query_args['meta_query'][] = $price_clause;
+		}
+
+		return $wp_query_args;
 	}
 
 	/**
@@ -1289,11 +1510,19 @@ class Products extends Rest_Controller_Base {
 	/**
 	 * Update product data from request
 	 *
+	 * Validation runs before any setter, so a rejected request leaves the product untouched.
+	 *
 	 * @param \WC_Product     $product The product object.
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return void
+	 * @return true|WP_Error True on success, WP_Error when the request is invalid.
 	 */
 	protected function update_product_data( $product, $request ) {
+		$sale_dates = $this->prepare_sale_dates( $product, $request );
+
+		if ( is_wp_error( $sale_dates ) ) {
+			return $sale_dates;
+		}
+
 		$fields = array(
 			'name',
 			'description',
@@ -1346,6 +1575,191 @@ class Products extends Rest_Controller_Base {
 		if ( isset( $request['images'] ) && is_array( $request['images'] ) ) {
 			$this->set_product_images( $product, $request['images'] );
 		}
+
+		// WooCommerce recalculates the active price on save and its scheduled sales cron
+		// starts and ends the sale, so only the dates are set here.
+		if ( array_key_exists( 'from', $sale_dates ) ) {
+			$product->set_date_on_sale_from( $sale_dates['from'] );
+		}
+		if ( array_key_exists( 'to', $sale_dates ) ) {
+			$product->set_date_on_sale_to( $sale_dates['to'] );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Parse and validate the scheduled sale dates of a request.
+	 *
+	 * @param \WC_Product     $product The product object.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return array|WP_Error Map with a 'from' and/or 'to' key (Unix timestamp, or null to clear) for
+	 *                        each date that was sent, or WP_Error when the request is invalid.
+	 */
+	protected function prepare_sale_dates( $product, $request ) {
+		$dates = array();
+
+		foreach ( array( 'from', 'to' ) as $edge ) {
+			$field = 'date_on_sale_' . $edge;
+
+			// The UTC variant wins when both are sent.
+			if ( $request->has_param( $field . '_gmt' ) ) {
+				$field   .= '_gmt';
+				$timezone = new \DateTimeZone( 'UTC' );
+			} elseif ( $request->has_param( $field ) ) {
+				$timezone = wp_timezone();
+			} else {
+				continue;
+			}
+
+			$timestamp = $this->parse_sale_date( $request->get_param( $field ), $timezone, 'to' === $edge );
+
+			if ( false === $timestamp ) {
+				return new WP_Error(
+					'invalid_sale_date',
+					/* translators: %s is the name of the request field. */
+					sprintf( __( 'Invalid date in %s. Use ISO 8601, e.g. 2026-11-30 or 2026-11-30T23:59:59.', 'sg-ai-studio' ), $field ),
+					array( 'field' => $field )
+				);
+			}
+
+			$dates[ $edge ] = $timestamp;
+		}
+
+		$sends_sale_price = $request->has_param( 'sale_price' );
+
+		if ( empty( $dates ) && ! $sends_sale_price ) {
+			return $dates;
+		}
+
+		// A variable parent has no price of its own, WooCommerce syncs it from the variations.
+		if ( $product->is_type( 'variable' ) ) {
+			return new WP_Error(
+				'variable_product_sale',
+				__( 'Sale prices and sale dates cannot be set on a variable product. Set them on each of its variations instead.', 'sg-ai-studio' )
+			);
+		}
+
+		$from = array_key_exists( 'from', $dates ) ? $dates['from'] : $this->get_sale_date_timestamp( $product->get_date_on_sale_from( 'edit' ) );
+		$to   = array_key_exists( 'to', $dates ) ? $dates['to'] : $this->get_sale_date_timestamp( $product->get_date_on_sale_to( 'edit' ) );
+
+		if ( null !== $from && null !== $to && $to < $from ) {
+			return new WP_Error(
+				'invalid_sale_dates',
+				__( 'date_on_sale_to must not be before date_on_sale_from.', 'sg-ai-studio' ),
+				array( 'field' => 'date_on_sale_to' )
+			);
+		}
+
+		$sale_price = isset( $request['sale_price'] ) ? (string) $request['sale_price'] : (string) $product->get_sale_price( 'edit' );
+		$sets_date  = ( isset( $dates['from'] ) || isset( $dates['to'] ) );
+
+		if ( $sets_date && '' === $sale_price ) {
+			return new WP_Error(
+				'sale_price_required',
+				__( 'A sale date needs a sale_price. Send sale_price in the same request or set it first.', 'sg-ai-studio' ),
+				array( 'field' => 'sale_price' )
+			);
+		}
+
+		return $dates;
+	}
+
+	/**
+	 * Parse one scheduled sale date.
+	 *
+	 * A date without a time covers the whole day, the same as in the WooCommerce product editor:
+	 * a start date begins at 00:00:00 and an end date runs until 23:59:59.
+	 *
+	 * @param mixed         $value    Raw request value.
+	 * @param \DateTimeZone $timezone Timezone of a value that carries no offset.
+	 * @param bool          $is_end   Whether the value is the end of the sale.
+	 * @return int|null|false Unix timestamp, null to clear the date, or false when the value is invalid.
+	 */
+	protected function parse_sale_date( $value, $timezone, $is_end ) {
+		if ( null === $value || '' === $value ) {
+			return null;
+		}
+
+		if ( ! is_string( $value ) ) {
+			return false;
+		}
+
+		$value = trim( $value );
+
+		if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|z|[+-]\d{2}:?\d{2})?)?$/', $value, $matches ) ) {
+			return false;
+		}
+
+		if ( ! checkdate( (int) $matches[2], (int) $matches[3], (int) $matches[1] ) ) {
+			return false;
+		}
+
+		if ( ! isset( $matches[4] ) ) {
+			$value .= $is_end ? ' 23:59:59' : ' 00:00:00';
+		} elseif ( (int) $matches[4] > 23 || (int) $matches[5] > 59 || ( isset( $matches[6] ) && (int) $matches[6] > 59 ) ) {
+			return false;
+		}
+
+		try {
+			// An offset in the value takes precedence over $timezone.
+			$date = new \DateTimeImmutable( $value, $timezone );
+		} catch ( \Exception $e ) {
+			return false;
+		}
+
+		return $date->getTimestamp();
+	}
+
+	/**
+	 * Get the Unix timestamp of a stored sale date.
+	 *
+	 * @param \WC_DateTime|null $date Stored date.
+	 * @return int|null Timestamp, or null when no date is stored.
+	 */
+	private function get_sale_date_timestamp( $date ) {
+		return $date ? $date->getTimestamp() : null;
+	}
+
+	/**
+	 * Format the scheduled sale dates of a product for a response.
+	 *
+	 * @param \WC_Product $product The product object.
+	 * @return array Sale date fields in the site timezone and in UTC, null when not scheduled.
+	 */
+	private function get_sale_date_fields( $product ) {
+		$fields = array();
+
+		foreach ( array( 'from', 'to' ) as $edge ) {
+			$getter = 'get_date_on_sale_' . $edge;
+			$date   = $product->$getter( 'edit' );
+
+			$fields[ 'date_on_sale_' . $edge ]          = $date ? $date->format( 'c' ) : null;
+			$fields[ 'date_on_sale_' . $edge . '_gmt' ] = $date ? gmdate( 'c', $date->getTimestamp() ) : null;
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Build the error response for a rejected product write.
+	 *
+	 * @param WP_Error $error The validation error.
+	 * @return WP_REST_Response
+	 */
+	private function get_invalid_product_data_response( $error ) {
+		$data = array(
+			'success' => false,
+			'error'   => $error->get_error_code(),
+			'message' => $error->get_error_message(),
+		);
+
+		$error_data = $error->get_error_data();
+		if ( isset( $error_data['field'] ) ) {
+			$data['field'] = $error_data['field'];
+		}
+
+		return new WP_REST_Response( $data, 400 );
 	}
 
 	/**
@@ -1452,13 +1866,13 @@ class Products extends Rest_Controller_Base {
 			'create' => array(
 				'type'        => 'array',
 				'items'       => array( 'type' => 'object' ),
-				'description' => 'Array of products to create.',
+				'description' => 'Array of products to create. Each item accepts the same fields as creating a single product, including sale_price, date_on_sale_from and date_on_sale_to for a scheduled sale.',
 				'required'    => false,
 			),
 			'update' => array(
 				'type'        => 'array',
 				'items'       => array( 'type' => 'object' ),
-				'description' => 'Array of products to update.',
+				'description' => 'Array of products to update. Each item needs an id and accepts the same fields as updating a single product, including sale_price, date_on_sale_from and date_on_sale_to for a scheduled sale.',
 				'required'    => false,
 			),
 			'delete' => array(
@@ -1533,7 +1947,7 @@ class Products extends Rest_Controller_Base {
 			if ( $response->is_error() || ! $response->get_data()['success'] ) {
 				$errors[ $key ] = $response->get_data();
 			} else {
-				$results[ $key ] = $response->get_data()['data'];
+				$results[ $key ] = $this->get_batch_item_result( $response );
 			}
 		}
 
@@ -1583,7 +1997,7 @@ class Products extends Rest_Controller_Base {
 			if ( $response->is_error() || ! $response->get_data()['success'] ) {
 				$errors[ $key ] = $response->get_data();
 			} else {
-				$results[ $key ] = $response->get_data()['data'];
+				$results[ $key ] = $this->get_batch_item_result( $response );
 			}
 		}
 
@@ -1591,6 +2005,19 @@ class Products extends Rest_Controller_Base {
 			'results' => $results,
 			'errors'  => $errors,
 		);
+	}
+
+	/**
+	 * Strip the envelope from a create or update response so it can be reported as a batch item.
+	 *
+	 * @param WP_REST_Response $response Response of create_product() or update_product().
+	 * @return array Item data.
+	 */
+	private function get_batch_item_result( $response ) {
+		$data = $response->get_data();
+		unset( $data['success'] );
+
+		return $data;
 	}
 
 	/**
@@ -1821,6 +2248,7 @@ class Products extends Rest_Controller_Base {
 			'menu_order'         => $product->get_menu_order(),
 		);
 
+		$data             = array_merge( $data, $this->get_sale_date_fields( $product ) );
 		$data['currency'] = get_woocommerce_currency();
 
 		if ( $product->is_type( 'variable' ) ) {

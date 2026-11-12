@@ -17,14 +17,31 @@ use SG_AI_Studio\Vendor\SiteGround_i18n\i18n_Service;
 class Admin {
 
 	/**
-	 * Subpages array.
+	 * Subpage ids, in menu order.
+	 *
+	 * Titles live in get_subpage_titles(), because translatable strings must be
+	 * passed to __() as literals to be extracted into the .pot file.
 	 *
 	 * @var array
 	 */
 	public $subpages = array(
-		'settings'     => 'Settings',
-		'activity-log' => 'Activity Log & Usage',
+		'settings'     => 'settings',
+		'activity-log' => 'activity-log',
 	);
+
+	/**
+	 * Get the translated menu titles of the subpages.
+	 *
+	 * @since  1.3.3
+	 *
+	 * @return array The subpage titles, keyed by subpage id.
+	 */
+	public function get_subpage_titles() {
+		return array(
+			'settings'     => esc_html__( 'Settings', 'sg-ai-studio' ),
+			'activity-log' => esc_html__( 'Activity & Usage', 'sg-ai-studio' ),
+		);
+	}
 
 	/**
 	 * Build the admin page slug of a subpage.
@@ -353,11 +370,22 @@ class Admin {
 			return;
 		}
 
-		foreach ( $this->subpages as $id => $title ) {
+		// Register the parent's own submenu entry explicitly, so WordPress does not
+		// auto-copy the top level "AI Agent" title into the first submenu item.
+		add_submenu_page(
+			\SG_AI_Studio\PLUGIN_SLUG,       // Parent slug.
+			esc_html__( 'Dashboard', 'sg-ai-studio' ),
+			esc_html__( 'Dashboard', 'sg-ai-studio' ),
+			'manage_options',
+			\SG_AI_Studio\PLUGIN_SLUG,       // Same slug as the parent.
+			array( $this, 'render' )
+		);
+
+		foreach ( $this->get_subpage_titles() as $id => $title ) {
 			add_submenu_page(
 				\SG_AI_Studio\PLUGIN_SLUG,   // Parent slug.
-				__($title, 'sg-ai-studio'),
-				__($title, 'sg-ai-studio'),
+				$title,
+				$title,
 				'manage_options',
 				$this->get_subpage_slug( $id ),
 				array( $this, 'render' )
@@ -451,28 +479,6 @@ class Admin {
 
 		// Default to 'dashboard' for the main page.
 		return 'sg-ai-studio';
-	}
-
-	/**
-	 * Reorder the submenu pages.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param   array $menu_order The WP menu order.
-	 * @return  array The menu order.
-	 */
-	public function reorder_submenu_pages( $menu_order ) {
-		// Load the global submenu.
-		global $submenu;
-		if ( empty( $submenu['sg-ai-studio'] ) ) {
-			return $menu_order;
-		}
-
-		$submenu['sg-ai-studio'][0][0] = __( 'Dashboard', 'sg-ai-studio' );
-		$submenu['sg-ai-studio'][1][0] = __( 'Settings', 'sg-ai-studio' );
-		$submenu['sg-ai-studio'][2][0] = __( 'Activity & Usage', 'sg-ai-studio' );
-
-		return $menu_order;
 	}
 
 	/**

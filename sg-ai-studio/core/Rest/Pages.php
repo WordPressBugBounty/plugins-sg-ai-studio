@@ -20,6 +20,7 @@ use SG_AI_Studio\Helper\Helper;
 class Pages extends Rest_Controller_Base {
 	use Revisions;
 	use Object_Terms;
+	use Meta_Support;
 
 	/**
 	 * REST API base
@@ -74,7 +75,7 @@ class Pages extends Rest_Controller_Base {
 						),
 						'embed_terms' => $this->get_embed_terms_arg(),
 					),
-					'description'         => 'Retrieves a specific page by ID. Pass embed_terms=true to get the terms assigned to the page as named terms.',
+					'description'         => 'Retrieves a specific page by ID, including its custom fields under meta. Pass embed_terms=true to get the terms assigned to the page as named terms.',
 				),
 				array(
 					'methods'             => 'PUT',
@@ -572,8 +573,9 @@ class Pages extends Rest_Controller_Base {
 					'type'        => 'string',
 				),
 				'meta'           => array(
-					'description' => 'Meta fields.',
-					'type'        => 'object',
+					'description' => 'Custom fields of the page, keyed by meta key, with values exactly as stored so they can be written back through meta unchanged. Present only on single reads. Protected internal fields (keys starting with an underscore) are omitted unless registered with show_in_rest. Null when the user cannot edit the page. Use the meta_fields of GET /types/{type} to discover which fields a post type has.',
+					'type'        => array( 'object', 'null' ),
+					'readonly'    => true,
 				),
 				'terms'          => array(
 					'description' => 'Named terms assigned to the page, keyed by taxonomy slug. Present only when embed_terms=true was requested. A taxonomy with nothing assigned is an empty array.',
@@ -707,6 +709,11 @@ class Pages extends Rest_Controller_Base {
 		$page_data              = $this->prepare_page_for_database( $request );
 		$page_data['ID']        = $page_id;
 		$page_data['post_type'] = 'page';
+
+
+		if ( ! isset( $request['author'] ) ) {
+			unset( $page_data['post_author'] );
+		}
 
 		// Update the page.
 		$updated = wp_update_post( $page_data, true );
@@ -1238,9 +1245,11 @@ class Pages extends Rest_Controller_Base {
 		}
 
 		// Omit heavy fields in list context to keep collection responses small.
-		// Single reads (context 'view') retain full content.
+		// Single reads (context 'view') retain full content and custom fields.
 		if ( 'list' === $context ) {
 			unset( $data['content'], $data['excerpt'] );
+		} else {
+			$data['meta'] = $this->get_post_meta_map( $page );
 		}
 
 		return $data;

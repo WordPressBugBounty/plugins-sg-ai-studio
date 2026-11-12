@@ -15,6 +15,7 @@ use WP_REST_Request;
  */
 class Post_Types extends Rest_Controller_Base {
 	use Taxonomy_Support;
+	use Meta_Support;
 
 	/**
 	 * REST API base
@@ -61,7 +62,7 @@ class Post_Types extends Rest_Controller_Base {
 							'required'    => true,
 						),
 					),
-					'description'         => 'Retrieves a specific post type by slug.',
+					'description'         => 'Retrieves a specific post type by slug, including meta_fields: the custom fields its items can have, to read and write through meta.',
 				),
 				'schema' => array( $this, 'get_post_type_schema' ),
 			)
@@ -177,6 +178,37 @@ class Post_Types extends Rest_Controller_Base {
 					),
 					'readonly'    => true,
 				),
+				'meta_fields'      => array(
+					'description' => 'Custom fields available on items of this post type, read from and written to the meta of a post. Present only on single post type reads, and only when the user can edit items of this type. Combines fields registered with register_meta, ACF fields (which may have no value on any item yet), and keys already in use on items of the type.',
+					'type'        => 'array',
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'key'         => array(
+								'description' => 'Meta key, used as the key in meta.',
+								'type'        => 'string',
+							),
+							'label'       => array(
+								'description' => 'Human readable field label, when known.',
+								'type'        => array( 'string', 'null' ),
+							),
+							'type'        => array(
+								'description' => 'Field type, when known: the register_meta type or the ACF field type.',
+								'type'        => array( 'string', 'null' ),
+							),
+							'description' => array(
+								'description' => 'Field description or instructions, when known.',
+								'type'        => 'string',
+							),
+							'source'      => array(
+								'description' => 'Where the field was found.',
+								'type'        => 'string',
+								'enum'        => array( 'registered', 'acf', 'in_use' ),
+							),
+						),
+					),
+					'readonly'    => true,
+				),
 			),
 		);
 	}
@@ -247,6 +279,11 @@ class Post_Types extends Rest_Controller_Base {
 
 		// Format the response.
 		$data = $this->prepare_post_type_for_response( $post_type_object );
+
+		// Field discovery queries the database, so it is reserved for single reads.
+		if ( current_user_can( $post_type_object->cap->edit_posts ) ) {
+			$data['meta_fields'] = $this->get_post_type_meta_fields( $post_type_object->name );
+		}
 
 		return new WP_REST_Response(
 			array(

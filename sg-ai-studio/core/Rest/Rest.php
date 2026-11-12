@@ -451,17 +451,6 @@ class Rest extends Rest_Controller_Base {
 
 		register_rest_route(
 			$this->namespace,
-			'/acl',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'get_acl' ),
-				'permission_callback' => function () {
-					return Helper::can_use_agent();
-				},
-			)
-		);
-		register_rest_route(
-			$this->namespace,
 			'/onboarding-shown',
 			array(
 				array(
@@ -481,6 +470,24 @@ class Rest extends Rest_Controller_Base {
 			)
 		);
 
+	}
+
+	/**
+	 * Apply SG AI Studio list filters to WooCommerce product queries.
+	 *
+	 * Delegates to Products::filter_products_query(). Returns the args untouched when the
+	 * WooCommerce endpoints are not initialized.
+	 *
+	 * @param array $wp_query_args WP_Query args built by the WooCommerce product data store.
+	 * @param array $query_vars    Query vars passed to wc_get_products().
+	 * @return array
+	 */
+	public function filter_products_query( $wp_query_args, $query_vars ) {
+		if ( ! $this->products ) {
+			return $wp_query_args;
+		}
+
+		return $this->products->filter_products_query( $wp_query_args, $query_vars );
 	}
 
 	/**
@@ -879,64 +886,6 @@ class Rest extends Rest_Controller_Base {
 				array(
 					'success' => false,
 					'message' => __( 'Failed to fetch usage data.', 'sg-ai-studio' ),
-					'error'   => $api_response->get_error_message(),
-				),
-				500
-			);
-		}
-
-		$response_body = wp_remote_retrieve_body( $api_response );
-		$status_code   = wp_remote_retrieve_response_code( $api_response );
-
-		return new \WP_REST_Response(
-			json_decode( $response_body, true ),
-			$status_code
-		);
-	}
-
-	/**
-	 * Get ACL data from AI Studio API
-	 *
-	 * @param \WP_REST_Request $request Full details about the request.
-	 * @return \WP_REST_Response Response object on success.
-	 */
-	public function get_acl( $request ) {
-		$auth_token = Helper::generate_ai_studio_token();
-
-		if ( false === $auth_token ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Failed to generate authentication token.', 'sg-ai-studio' ),
-				),
-				500
-			);
-		}
-
-		// Determine API URL based on environment.
-		if ( Helper::is_staging_environment() ) {
-			$api_url = 'https://api.staging.studio.siteground.ai/api/v1/acl/wp-acl';
-		} else {
-			$api_url = 'https://api.studio.siteground.ai/api/v1/acl/wp-acl';
-		}
-
-		// Call AI Studio Backend API.
-		$api_response = wp_remote_get(
-			$api_url,
-			array(
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $auth_token,
-				),
-				'timeout' => 30,
-			)
-		);
-
-		// Check if API call failed.
-		if ( is_wp_error( $api_response ) ) {
-			return new \WP_REST_Response(
-				array(
-					'success' => false,
-					'message' => __( 'Failed to fetch ACL data.', 'sg-ai-studio' ),
 					'error'   => $api_response->get_error_message(),
 				),
 				500
