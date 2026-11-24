@@ -2384,3 +2384,48 @@ msgstr ""
 
 msgid "User"
 msgstr ""
+
+msgid "Asking for your input"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Collapse steps"
+msgstr ""
+
+msgid "Contains errors"
+msgstr ""
+
+msgid "Decide for me"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Download %(name)s"
+msgstr ""
+
+msgid "Expand steps"
+msgstr ""
+
+msgid "Finished %(count)d tasks"
+msgstr ""
+
+msgid "Finished 1 task"
+msgstr ""
+
+msgid "No preference, you decide"
+msgstr ""
+
+msgid "Open %(name)s"
+msgstr ""
+
+msgid "Sharing a file"
+msgstr ""
+
+msgid "Type your own answer"
+msgstr ""
+
+msgid "Working"
+msgstr ""

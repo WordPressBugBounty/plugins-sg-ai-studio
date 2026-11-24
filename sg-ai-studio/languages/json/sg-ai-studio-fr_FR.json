@@ -1482,5 +1482,50 @@
     ],
     "User": [
         "Utilisateur"
+    ],
+    "Asking for your input": [
+        "En attente de votre réponse"
+    ],
+    "Back": [
+        "Retour"
+    ],
+    "Collapse steps": [
+        "Masquer les étapes"
+    ],
+    "Contains errors": [
+        "Contient des erreurs"
+    ],
+    "Decide for me": [
+        "Décider à ma place"
+    ],
+    "Done": [
+        "Terminé"
+    ],
+    "Download %(name)s": [
+        "Télécharger %(name)s"
+    ],
+    "Expand steps": [
+        "Afficher les étapes"
+    ],
+    "Finished %(count)d tasks": [
+        "%(count)d tâches terminées"
+    ],
+    "Finished 1 task": [
+        "1 tâche terminée"
+    ],
+    "No preference, you decide": [
+        "Pas de préférence, à vous de décider"
+    ],
+    "Open %(name)s": [
+        "Ouvrir %(name)s"
+    ],
+    "Sharing a file": [
+        "Partage d’un fichier en cours"
+    ],
+    "Type your own answer": [
+        "Saisissez votre propre réponse"
+    ],
+    "Working": [
+        "Traitement en cours"
     ]
 }

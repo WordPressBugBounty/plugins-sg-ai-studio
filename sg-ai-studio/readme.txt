@@ -3,7 +3,7 @@ Contributors: Hristo Sg, siteground, sstoqnov, stoyangeorgiev, elenachavdarova, 
 Tags: agent, AI, chatbot, woocommerce, SiteGround
 Requires at least: 5.0
 Tested up to: 7.1
-Stable tag: 1.3.3
+Stable tag: 2.0.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -116,6 +116,17 @@ Service provider: SiteGround. [Terms of Service](https://www.siteground.com/view
 3. Update all plugins on every connected site from one chat in AI Studio.
 
 == Changelog ==
+= 2.0.0 =
+Release Date Nov 24th, 2026
+
+* New: Activity timeline shows every step the AI Agent takes (with expandable task lists)
+* New: Multi-step operations - the agent can chain tasks, loop through items, and fix its own code
+* New: File outputs - tasks can now produce downloadable files (reports, exports)
+* Chain-of-thought visibility for complex operations
+* Faster response times - improved execution engine
+* Failed steps stay visible with error details instead of disappearing
+* Enhanced reliability for bulk operations and WooCommerce campaigns
+
 = 1.3.3 =
 Release Date Nov 12th, 2026
 

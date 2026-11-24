@@ -2463,3 +2463,48 @@ msgstr "Nicht genügend Tokens. Wenden Sie sich an Ihren Administrator."
 
 msgid "User"
 msgstr "Benutzer"
+
+msgid "Asking for your input"
+msgstr "Wartet auf Ihre Antwort"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Collapse steps"
+msgstr "Schritte ausblenden"
+
+msgid "Contains errors"
+msgstr "Enthält Fehler"
+
+msgid "Decide for me"
+msgstr "Für mich entscheiden"
+
+msgid "Done"
+msgstr "Fertig"
+
+msgid "Download %(name)s"
+msgstr "%(name)s herunterladen"
+
+msgid "Expand steps"
+msgstr "Schritte einblenden"
+
+msgid "Finished %(count)d tasks"
+msgstr "%(count)d Aufgaben abgeschlossen"
+
+msgid "Finished 1 task"
+msgstr "1 Aufgabe abgeschlossen"
+
+msgid "No preference, you decide"
+msgstr "Keine Präferenz, entscheiden Sie"
+
+msgid "Open %(name)s"
+msgstr "%(name)s öffnen"
+
+msgid "Sharing a file"
+msgstr "Teilt eine Datei"
+
+msgid "Type your own answer"
+msgstr "Eigene Antwort eingeben"
+
+msgid "Working"
+msgstr "Arbeitet"

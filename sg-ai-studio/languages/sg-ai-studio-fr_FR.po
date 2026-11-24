@@ -2469,3 +2469,48 @@ msgstr "Tokens insuffisants. Contactez votre administrateur."
 
 msgid "User"
 msgstr "Utilisateur"
+
+msgid "Asking for your input"
+msgstr "En attente de votre réponse"
+
+msgid "Back"
+msgstr "Retour"
+
+msgid "Collapse steps"
+msgstr "Masquer les étapes"
+
+msgid "Contains errors"
+msgstr "Contient des erreurs"
+
+msgid "Decide for me"
+msgstr "Décider à ma place"
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "Download %(name)s"
+msgstr "Télécharger %(name)s"
+
+msgid "Expand steps"
+msgstr "Afficher les étapes"
+
+msgid "Finished %(count)d tasks"
+msgstr "%(count)d tâches terminées"
+
+msgid "Finished 1 task"
+msgstr "1 tâche terminée"
+
+msgid "No preference, you decide"
+msgstr "Pas de préférence, à vous de décider"
+
+msgid "Open %(name)s"
+msgstr "Ouvrir %(name)s"
+
+msgid "Sharing a file"
+msgstr "Partage d’un fichier en cours"
+
+msgid "Type your own answer"
+msgstr "Saisissez votre propre réponse"
+
+msgid "Working"
+msgstr "Traitement en cours"

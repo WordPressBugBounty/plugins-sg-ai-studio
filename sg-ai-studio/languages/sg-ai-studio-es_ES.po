@@ -2459,3 +2459,48 @@ msgstr "No hay suficientes tokens. Contacta con tu administrador."
 
 msgid "User"
 msgstr "Usuario"
+
+msgid "Asking for your input"
+msgstr "Esperando tu respuesta"
+
+msgid "Back"
+msgstr "Atrás"
+
+msgid "Collapse steps"
+msgstr "Ocultar pasos"
+
+msgid "Contains errors"
+msgstr "Contiene errores"
+
+msgid "Decide for me"
+msgstr "Decide por mí"
+
+msgid "Done"
+msgstr "Listo"
+
+msgid "Download %(name)s"
+msgstr "Descargar %(name)s"
+
+msgid "Expand steps"
+msgstr "Mostrar pasos"
+
+msgid "Finished %(count)d tasks"
+msgstr "%(count)d tareas finalizadas"
+
+msgid "Finished 1 task"
+msgstr "1 tarea finalizada"
+
+msgid "No preference, you decide"
+msgstr "Sin preferencia, decide tú"
+
+msgid "Open %(name)s"
+msgstr "Abrir %(name)s"
+
+msgid "Sharing a file"
+msgstr "Compartiendo un archivo"
+
+msgid "Type your own answer"
+msgstr "Escribe tu propia respuesta"
+
+msgid "Working"
+msgstr "Trabajando"
